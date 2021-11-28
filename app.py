@@ -2,7 +2,6 @@ from flask import Flask, request, make_response, jsonify, session
 from flask_cors import CORS, cross_origin
 from flask.helpers import send_from_directory
 from passlib.hash import sha256_crypt
-import json
 import sqlite3
 import datetime
 
@@ -32,7 +31,8 @@ conn.execute(
     (
      taskID INT PRIMARY KEY AUTOINCREMENT, 
      userID TEXT REFERENCES User, 
-     title TEXT, description TEXT, 
+     title TEXT, 
+     description TEXT,
      completed BOOLEAN, 
      createdAt DATE, 
      priority TEXT
@@ -52,11 +52,14 @@ def login():
     """
     Checks if the username and password are valid, and if they are, let the user in.
     """
-    try:
-        username = request.json["username"]
-        password = request.json["password"]
-    except:
+    username = password = ""
+
+    # Checks if the user gave all necessary information
+    if not ("username" in request.json and "password" in request.json):
         return "Did not enter all necessary information", 400
+
+    username = request.json["username"]
+    password = request.json["password"]
 
     try:
         with sqlite3.connect("database.db") as con:
@@ -81,39 +84,49 @@ def signup():
     Checks if the username, password, firstname and lastname are valid.
     If they are, we store it in the database.
     """
-    try:
-        firstname = request.json["firstname"]
-        lastname = request.json["lastname"]
-        username = request.json["username"]
-        password = request.json["password"]
-    except:
+    firstname = lastname = username = password = ""
+
+    # Checks if the user gave all necessary information
+    if not (
+        "firstname" in request.json
+        and "lastname" in request.json
+        and "username" in request.json
+        and "password" in request.json
+    ):
         return "Did not enter all necessary information", 400
 
-    if (
+    firstname = request.json["firstname"]
+    lastname = request.json["lastname"]
+    username = request.json["username"]
+    password = request.json["password"]
+
+    # Checks if the info is valid
+    if not (
         check_valid_credentials(username)
         and check_valid_credentials(password)
         and check_valid_name(firstname)
         and check_valid_name(lastname)
     ):
-        try:
-            new_password = sha256_crypt.hash(password)
-            with sqlite3.connect("database.db") as con:
-                cur = con.cursor()
-                cur.execute(
-                    "INSERT INTO User values (?,?,?,?)",
-                    (username, new_password, firstname, lastname),
-                )
-                con.commit()
-            return "User successfully added", 200
-        except sqlite3.IntegrityError as err:
-            return "That username already exists. Please choose a new one.", 400
-        except:
-            "Error with inserting user", 500
-    else:
         return "Entered invalid information", 400
 
+    # Stores the info in the db
+    try:
+        new_password = sha256_crypt.hash(password)
+        with sqlite3.connect("database.db") as con:
+            cur = con.cursor()
+            cur.execute(
+                "INSERT INTO User values (?,?,?,?)",
+                (username, new_password, firstname, lastname),
+            )
+            con.commit()
+        return "User successfully added", 200
+    except sqlite3.IntegrityError as err:
+        return "That username already exists. Please choose a new one.", 400
+    except:
+        "Error with inserting user", 500
 
-@app.route("/logout")
+
+@app.route("/logout", methods=["GET"])
 def logout():
     """
     Logs out the user and removes their session id
@@ -122,22 +135,71 @@ def logout():
     return "Logout Successful", 200
 
 
-@app.route("/api/addTask")
+@app.route("/api/addTask", methods=["POST"])
 def addTask():
     if "userID" not in session:
         return "Unauthorized Access", 403
-    else:
-        try:
-            username = request.json["username"]
-            title = request.json["title"]
-            description = request.json["description"]
-            priority = request.json["priority"]
-            cur_day = datetime.datetime.now()
 
-            # Checks if the user is in the db.
+    username = title = description = priority = ""
 
-        except:
-            return "Did not enter all necessary information", 400
+    # Checks if the user gave all necessary information
+    if not (
+        "username" in request.json
+        and "title" in request.json
+        and "description" in request.json
+        and "priority" in request.json
+    ):
+        return "Did not enter all necessary information", 400
+
+    title = request.json["title"]
+    description = request.json["description"]
+    username = request.json["username"]
+    priority = request.json["priority"]
+    cur_day = datetime.datetime.now()
+    completed = False
+
+    try:
+        with sqlite3.connect("database.db") as con:
+            cur = con.cursor()
+            cur.execute(
+                """
+                INSERT INTO Task 
+                (userID, title, description, completed, createdAt, priority) 
+                values 
+                (?,?,?,?,?,?)
+                """,
+                (username, title, description, completed, cur_day, priority),
+            )
+            con.commit()
+        return "Task successfully added", 200
+    except sqlite3.IntegrityError as err:
+        return "That username doesn't exists.", 404
+    except:
+        "Error with adding task", 500
+
+
+@app.route("/api/deleteTask", methods=["DELETE"])
+def deleteTask():
+    if "userID" not in session:
+        return "Unauthorized Access", 403
+
+    # Checks if the user gave all necessary information
+    taskID = request.args.get("taskID")
+    if not taskID:
+        return "Did not enter all necessary information", 400
+
+    try:
+        with sqlite3.connect("database.db") as con:
+            cur = con.cursor()
+            cur.execute(
+                """
+                DELETE FROM Task WHERE taskID = (?)
+                """,
+                (taskID,),
+            )
+        return "Task successfully deleted", 200
+    except:
+        "Error with deleting task", 500
 
 
 @app.route("/")
