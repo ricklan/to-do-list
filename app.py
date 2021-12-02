@@ -29,7 +29,7 @@ conn.execute(
     """
     CREATE TABLE IF NOT EXISTS Task 
     (
-     taskID INT PRIMARY KEY AUTOINCREMENT, 
+     taskID INTEGER PRIMARY KEY AUTOINCREMENT, 
      userID TEXT REFERENCES User, 
      title TEXT, 
      description TEXT,
@@ -67,15 +67,15 @@ def login():
             cur.execute("SELECT password FROM User WHERE username = (?)", (username,))
             rows = cur.fetchall()
         if len(rows) == 0:
-            return "Invalid username", 400
+            return "Username not found", 404
         else:
-            if sha256_crypt.verify(password, rows[0]):
+            if sha256_crypt.verify(password, rows[0][0]):
                 session["userID"] = username
-                return "Success", 200
+                return "Successfully logged in", 200
             else:
-                return "Invalid Password", 400
+                return "Password not found", 404
     except:
-        "Error with login", 500
+        return "Error with login", 500
 
 
 @app.route("/signup", methods=["POST"])
@@ -101,13 +101,29 @@ def signup():
     password = request.json["password"]
 
     # Checks if the info is valid
-    if not (
-        check_valid_credentials(username)
-        and check_valid_credentials(password)
-        and check_valid_name(firstname)
-        and check_valid_name(lastname)
-    ):
-        return "Entered invalid information", 400
+    if not (check_valid_credentials(username)):
+        return (
+            "The username is not of the right format. Usernames must be at least 8 characters long and only contain alphanumeric characters",
+            400,
+        )
+
+    if not (check_valid_credentials(password)):
+        return (
+            "The pasword is not of the right format. Passwords must be at least 8 characters long and only contain alphanumeric characters",
+            400,
+        )
+
+    if not (check_valid_name(firstname)):
+        return (
+            "The firstname is not of the right format. Firstnames must only contain alphanumeric characters",
+            400,
+        )
+
+    if not (check_valid_name(lastname)):
+        return (
+            "The lastname is not of the right format. Lastnames must only contain alphanumeric characters",
+            400,
+        )
 
     # Stores the info in the db
     try:
@@ -123,7 +139,7 @@ def signup():
     except sqlite3.IntegrityError as err:
         return "That username already exists. Please choose a new one.", 400
     except:
-        "Error with inserting user", 500
+        return "Error with inserting user", 500
 
 
 @app.route("/logout", methods=["GET"])
@@ -175,18 +191,63 @@ def addTask():
     except sqlite3.IntegrityError as err:
         return "That username doesn't exists.", 404
     except:
-        "Error with adding task", 500
+        return "Error with adding task", 500
+
+
+@app.route("/api/editTask", methods=["PATCH"])
+def editTask():
+    if "userID" not in session:
+        return "Unauthorized Access", 403
+
+    taskID = 0
+    title = description = priority = ""
+
+    # Checks if the user gave all necessary information
+    if not (
+        "taskID" in request.json
+        and "title" in request.json
+        and "description" in request.json
+        and "priority" in request.json
+    ):
+        return "Did not enter all necessary information", 400
+
+    title = request.json["title"]
+    description = request.json["description"]
+    taskID = request.json["taskID"]
+    priority = request.json["priority"]
+
+    try:
+        with sqlite3.connect("database.db") as con:
+            cur = con.cursor()
+            cur.execute(
+                """
+                UPDATE Task 
+                SET 
+                title = (?),
+                description = (?),
+                priority = (?)
+                WHERE taskID = (?)
+                """,
+                (title, description, priority, taskID),
+            )
+            con.commit()
+        return "Task successfully updated", 200
+    except:
+        return "Error with updating task", 500
 
 
 @app.route("/api/deleteTask", methods=["DELETE"])
 def deleteTask():
+    """
+    Deletes a task from the database
+    """
     if "userID" not in session:
         return "Unauthorized Access", 403
 
     # Checks if the user gave all necessary information
     taskID = request.args.get("taskID")
     if not taskID:
-        return "Did not enter all necessary information", 400
+        return "Did not enter a taskID", 400
 
     try:
         with sqlite3.connect("database.db") as con:
@@ -199,7 +260,42 @@ def deleteTask():
             )
         return "Task successfully deleted", 200
     except:
-        "Error with deleting task", 500
+        return "Error with deleting task", 500
+
+
+@app.route("/api/getTask", methods=["GET"])
+def getTask():
+    if "userID" not in session:
+        return "Unauthorized Access", 403
+
+    # Checks if the user gave all necessary information
+    pageNumber = request.args.get("pageNumber")
+    if not pageNumber:
+        return "Did not a page number", 400
+
+    pageNumber = int(pageNumber)
+
+    if pageNumber < 1:
+        return "Invalid page number", 400
+
+    try:
+        with sqlite3.connect("database.db") as con:
+            cur = con.cursor()
+            cur.execute(
+                """
+                SELECT title, description, priority 
+                FROM Task 
+                WHERE userID = (?)
+                ORDER BY createdAt
+                LIMIT (?)
+                OFFSET (?)
+                """,
+                (session["userID"], pageNumber * 3, (pageNumber - 1) * 3),
+            )
+            rows = cur.fetchall()
+        return jsonify(rows), 200
+    except:
+        return "Error with deleting task", 500
 
 
 @app.route("/")
