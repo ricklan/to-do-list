@@ -4,3 +4,5 @@ lib64
 share
 pyvenv.cfg
 database.db
+__pycache__
+test/__pycache__

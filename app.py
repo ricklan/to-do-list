@@ -314,7 +314,7 @@ def check_valid_credentials(credential):
     """
     Checks if the credential (username and password) is all alphanumeric characters and is at least 8 characters long
     """
-    return len(credential) >= 8 and credential.isalnum()
+    return len(credential) >= 8 and credential.isalnum() and not credential.isnumeric()
 
 
 if __name__ == "__main__":
