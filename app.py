@@ -70,7 +70,10 @@ def login():
         else:
             if sha256_crypt.verify(password, rows[0][0]):
                 session["userID"] = username
-                return "Successfully logged in", 200
+                return (
+                    "Successfully logged in",
+                    200,
+                )  # Maybe return user's first and/or last name
             else:
                 return "Password not found", 404
     except:
@@ -114,13 +117,13 @@ def signup():
 
     if not (check_valid_name(firstname)):
         return (
-            "The firstname is not of the right format. Firstnames must only contain alphanumeric characters",
+            "The firstname is not of the right format. Firstnames must only contain alphabetical characters",
             400,
         )
 
     if not (check_valid_name(lastname)):
         return (
-            "The lastname is not of the right format. Lastnames must only contain alphanumeric characters",
+            "The lastname is not of the right format. Lastnames must only contain alphabetical characters",
             400,
         )
 
@@ -165,6 +168,10 @@ def addTask():
         and "priority" in request.json
     ):
         return "Did not enter all necessary information", 400
+
+    # Check if the priority is one of H (High), M (Medium), L (Low)
+    if priority != "H" or priority != "M" or priority != "L":
+        return "The priority is invalid", 404
 
     title = request.json["title"]
     description = request.json["description"]
@@ -281,7 +288,7 @@ def getTask():
             cur = con.cursor()
             cur.execute(
                 """
-                SELECT title, description, priority 
+                SELECT title, description, priority, taskID 
                 FROM Task 
                 WHERE userID = (?)
                 ORDER BY createdAt
