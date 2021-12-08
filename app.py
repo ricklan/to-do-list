@@ -33,7 +33,6 @@ conn.execute(
      userID TEXT REFERENCES User, 
      title TEXT, 
      description TEXT,
-     completed BOOLEAN, 
      createdAt DATE, 
      priority TEXT
     )
@@ -172,7 +171,6 @@ def addTask():
     username = request.json["username"]
     priority = request.json["priority"]
     cur_day = datetime.datetime.now()
-    completed = False
 
     try:
         with sqlite3.connect("database.db") as con:
@@ -180,11 +178,11 @@ def addTask():
             cur.execute(
                 """
                 INSERT INTO Task 
-                (userID, title, description, completed, createdAt, priority) 
+                (userID, title, description, createdAt, priority) 
                 values 
                 (?,?,?,?,?,?)
                 """,
-                (username, title, description, completed, cur_day, priority),
+                (username, title, description, cur_day, priority),
             )
             con.commit()
         return "Task successfully added", 200
