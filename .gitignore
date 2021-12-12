@@ -6,3 +6,4 @@ pyvenv.cfg
 database.db
 __pycache__
 test/__pycache__
+.vscode/settings.json
