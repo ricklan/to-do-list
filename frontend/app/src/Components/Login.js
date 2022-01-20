@@ -14,7 +14,9 @@ function Login() {
           <label> Passsword:</label>
           <input type="text" name="password" id="password" required></input>
         </div>
-        <button>Log In</button>
+        <button>
+          <Link to="/dashboard">Log In;</Link>
+        </button>
       </form>
       <Link to="/signup">Sign Up</Link>
     </>

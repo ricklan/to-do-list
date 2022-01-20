@@ -1,12 +1,19 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
-import "./Components/Home";
-import Home from "./Components/Home";
+import Dashboard from "./Components/Dashboard";
+import Login from "./Components/Login";
+import SignUp from "./Components/SignUp";
 
 function App() {
   return (
-    <>
-      <Home />
-    </>
+    <BrowserRouter>
+      <h1>To-Do List</h1>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
