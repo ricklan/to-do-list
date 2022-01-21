@@ -7,3 +7,4 @@ database.db
 __pycache__
 test/__pycache__
 frontend/sketches
+.vscode/settings.json

@@ -1,9 +1,10 @@
-from flask import Flask, request, make_response, jsonify, session
+from flask import Flask, request, make_response, jsonify
 from flask_cors import CORS, cross_origin
 from flask.helpers import send_from_directory
 from passlib.hash import sha256_crypt
 import sqlite3
 import datetime
+import json
 
 
 app = Flask(__name__, static_folder="frontend/build", static_url_path="")
@@ -30,11 +31,12 @@ conn.execute(
     CREATE TABLE IF NOT EXISTS Task 
     (
      taskID INTEGER PRIMARY KEY AUTOINCREMENT, 
-     userID TEXT REFERENCES User, 
+     userID TEXT, 
      title TEXT, 
      description TEXT,
      createdAt DATE, 
-     priority TEXT
+     priority TEXT,
+     FOREIGN KEY(userID) REFERENCES User (username) ON DELETE CASCADE
     )
     """
 )
@@ -48,11 +50,6 @@ def _corsify_actual_response(response):
 
 @app.route("/login", methods=["POST"])
 def login():
-    """
-    Checks if the username and password are valid, and if they are, let the user in.
-    """
-    username = password = ""
-
     # Checks if the user gave all necessary information
     if not ("username" in request.json and "password" in request.json):
         return "Did not enter all necessary information", 400
@@ -63,14 +60,18 @@ def login():
     try:
         with sqlite3.connect("database.db") as con:
             cur = con.cursor()
-            cur.execute("SELECT password FROM User WHERE username = (?)", (username,))
-            rows = cur.fetchall()
+            rows = cur.execute(
+                "SELECT password FROM User WHERE username = (?)", (username,)
+            ).fetchall()
         if len(rows) == 0:
             return "Username not found", 404
         else:
             if sha256_crypt.verify(password, rows[0][0]):
-                session["userID"] = username
-                return "Successfully logged in", 200
+
+                return (
+                    "Successfully logged in",
+                    200,
+                )  # Maybe return user's first and/or last name
             else:
                 return "Password not found", 404
     except:
@@ -79,11 +80,6 @@ def login():
 
 @app.route("/signup", methods=["POST"])
 def signup():
-    """
-    Checks if the username, password, firstname and lastname are valid.
-    If they are, we store it in the database.
-    """
-    firstname = lastname = username = password = ""
 
     # Checks if the user gave all necessary information
     if not (
@@ -114,13 +110,13 @@ def signup():
 
     if not (check_valid_name(firstname)):
         return (
-            "The firstname is not of the right format. Firstnames must only contain alphanumeric characters",
+            "The firstname is not of the right format. Firstnames must only contain alphabetical characters",
             400,
         )
 
     if not (check_valid_name(lastname)):
         return (
-            "The lastname is not of the right format. Lastnames must only contain alphanumeric characters",
+            "The lastname is not of the right format. Lastnames must only contain alphabetical characters",
             400,
         )
 
@@ -143,19 +139,11 @@ def signup():
 
 @app.route("/logout", methods=["GET"])
 def logout():
-    """
-    Logs out the user and removes their session id
-    """
-    session.pop("userID", None)
     return "Logout Successful", 200
 
 
 @app.route("/api/addTask", methods=["POST"])
 def addTask():
-    if "userID" not in session:
-        return "Unauthorized Access", 403
-
-    username = title = description = priority = ""
 
     # Checks if the user gave all necessary information
     if not (
@@ -172,33 +160,36 @@ def addTask():
     priority = request.json["priority"]
     cur_day = datetime.datetime.now()
 
+    # Check if the priority is one of H (High), M (Medium), L (Low)
+    if priority != "H" and priority != "M" and priority != "L":
+        return "The priority is invalid", 404
+
     try:
         with sqlite3.connect("database.db") as con:
             cur = con.cursor()
-            cur.execute(
-                """
-                INSERT INTO Task 
-                (userID, title, description, createdAt, priority) 
-                values 
-                (?,?,?,?,?,?)
-                """,
-                (username, title, description, cur_day, priority),
-            )
-            con.commit()
-        return "Task successfully added", 200
-    except sqlite3.IntegrityError as err:
-        return "That username doesn't exists.", 404
+            rows = cur.execute(
+                "SELECT username FROM User WHERE username = (?)", (username,)
+            ).fetchall()
+            if len(rows) == 0:
+                return "That username doesn't exists.", 404
+            else:
+                cur.execute(
+                    """
+                    INSERT INTO Task 
+                    (userID, title, description, createdAt, priority) 
+                    values 
+                    (?,?,?,?,?)
+                    """,
+                    (username, title, description, cur_day, priority),
+                )
+                con.commit()
+            return "Task successfully added", 200
     except:
         return "Error with adding task", 500
 
 
 @app.route("/api/editTask", methods=["PATCH"])
 def editTask():
-    if "userID" not in session:
-        return "Unauthorized Access", 403
-
-    taskID = 0
-    title = description = priority = ""
 
     # Checks if the user gave all necessary information
     if not (
@@ -239,8 +230,6 @@ def deleteTask():
     """
     Deletes a task from the database
     """
-    if "userID" not in session:
-        return "Unauthorized Access", 403
 
     # Checks if the user gave all necessary information
     taskID = request.args.get("taskID")
@@ -250,50 +239,69 @@ def deleteTask():
     try:
         with sqlite3.connect("database.db") as con:
             cur = con.cursor()
-            cur.execute(
-                """
-                DELETE FROM Task WHERE taskID = (?)
-                """,
-                (taskID,),
-            )
-        return "Task successfully deleted", 200
+            rows = cur.execute(
+                "SELECT taskID FROM Task WHERE taskID = (?)", (taskID,)
+            ).fetchall()
+            if len(rows) == 0:
+                return "That taskID doesn't exists.", 404
+            else:
+                cur.execute(
+                    """
+                    DELETE FROM Task WHERE taskID = (?)
+                    """,
+                    (taskID,),
+                )
+            return "Task successfully deleted", 200
     except:
         return "Error with deleting task", 500
+
+
+def row_to_dict(cursor: sqlite3.Cursor, row: sqlite3.Row) -> dict:
+    data = {}
+    for idx, col in enumerate(cursor.description):
+        data[col[0]] = row[idx]
+    return data
 
 
 @app.route("/api/getTask", methods=["GET"])
 def getTask():
-    if "userID" not in session:
-        return "Unauthorized Access", 403
 
     # Checks if the user gave all necessary information
     pageNumber = request.args.get("pageNumber")
+    userID = request.args.get("username")
+    filterTag = (
+        request.args.get("filter").upper()
+        if request.args.get("filter") != None
+        else "%"
+    )
+
     if not pageNumber:
-        return "Did not a page number", 400
+        return "Did not give a page number", 400
 
-    pageNumber = int(pageNumber)
+    if not userID:
+        return "Did not give a userID", 400
 
-    if pageNumber < 1:
+    if not pageNumber.isdigit() or int(pageNumber) < 1:
         return "Invalid page number", 400
 
+    pageNumber = int(pageNumber)
     try:
         with sqlite3.connect("database.db") as con:
-            cur = con.cursor()
-            cur.execute(
+            con.row_factory = row_to_dict
+            rows = con.execute(
                 """
-                SELECT title, description, priority 
+                SELECT title, description, priority, taskID 
                 FROM Task 
-                WHERE userID = (?)
+                WHERE userID = (?) and priority like (?)
                 ORDER BY createdAt
                 LIMIT (?)
                 OFFSET (?)
                 """,
-                (session["userID"], pageNumber * 3, (pageNumber - 1) * 3),
-            )
-            rows = cur.fetchall()
+                (userID, filterTag, pageNumber * 6, (pageNumber - 1) * 6),
+            ).fetchall()
         return jsonify(rows), 200
     except:
-        return "Error with deleting task", 500
+        return "Error with getting task", 500
 
 
 @app.route("/")
@@ -302,16 +310,10 @@ def home():
 
 
 def check_valid_name(name):
-    """
-    Checks if the name is all alphabetical characters
-    """
     return name.isalpha()
 
 
 def check_valid_credentials(credential):
-    """
-    Checks if the credential (username and password) is all alphanumeric characters and is at least 8 characters long
-    """
     return len(credential) >= 8 and credential.isalnum() and not credential.isnumeric()
 
 
