@@ -53,11 +53,15 @@ def _build_cors_preflight_response():
     response.headers.add("Access-Control-Allow-Headers", "*")
     return response
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["POST", "OPTIONS"])
 def login():
+
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+    
     # Checks if the user gave all necessary information
     if not ("username" in request.json and "password" in request.json):
-        return "Did not enter all necessary information", 400
+        return _corsify_actual_response(jsonify("Did not enter all necessary information")), 400
 
     username = request.json["username"]
     password = request.json["password"]
@@ -69,18 +73,18 @@ def login():
                 "SELECT password FROM User WHERE username = (?)", (username,)
             ).fetchall()
         if len(rows) == 0:
-            return "Username not found", 404
+            return _corsify_actual_response(jsonify("Username not found")), 404
         else:
             if sha256_crypt.verify(password, rows[0][0]):
 
                 return (
-                    "Successfully logged in",
+                    _corsify_actual_response(jsonify("Successfully logged in")),
                     200,
                 )  # Maybe return user's first and/or last name
             else:
-                return "Password not found", 404
+                return _corsify_actual_response(jsonify("Password not found")), 404
     except:
-        return "Error with login", 500
+        return _corsify_actual_response(jsonify("Error with login")), 500
 
 
 @app.route("/signup", methods=["POST", "OPTIONS"])
