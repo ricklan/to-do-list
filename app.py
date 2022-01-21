@@ -4,6 +4,7 @@ from flask.helpers import send_from_directory
 from passlib.hash import sha256_crypt
 import sqlite3
 import datetime
+import json
 
 
 app = Flask(__name__, static_folder="frontend/build", static_url_path="")
@@ -30,11 +31,12 @@ conn.execute(
     CREATE TABLE IF NOT EXISTS Task 
     (
      taskID INTEGER PRIMARY KEY AUTOINCREMENT, 
-     userID TEXT REFERENCES User, 
+     userID TEXT, 
      title TEXT, 
      description TEXT,
      createdAt DATE, 
-     priority TEXT
+     priority TEXT,
+     FOREIGN KEY(userID) REFERENCES User (username) ON DELETE CASCADE
     )
     """
 )
@@ -159,25 +161,29 @@ def addTask():
     cur_day = datetime.datetime.now()
 
     # Check if the priority is one of H (High), M (Medium), L (Low)
-    if priority != "H" or priority != "M" or priority != "L":
+    if priority != "H" and priority != "M" and priority != "L":
         return "The priority is invalid", 404
 
     try:
         with sqlite3.connect("database.db") as con:
             cur = con.cursor()
-            cur.execute(
-                """
-                INSERT INTO Task 
-                (userID, title, description, createdAt, priority) 
-                values 
-                (?,?,?,?,?,?)
-                """,
-                (username, title, description, cur_day, priority),
-            )
-            con.commit()
-        return "Task successfully added", 200
-    except sqlite3.IntegrityError as err:
-        return "That username doesn't exists.", 404
+            rows = cur.execute(
+                "SELECT username FROM User WHERE username = (?)", (username,)
+            ).fetchall()
+            if len(rows) == 0:
+                return "That username doesn't exists.", 404
+            else:
+                cur.execute(
+                    """
+                    INSERT INTO Task 
+                    (userID, title, description, createdAt, priority) 
+                    values 
+                    (?,?,?,?,?)
+                    """,
+                    (username, title, description, cur_day, priority),
+                )
+                con.commit()
+            return "Task successfully added", 200
     except:
         return "Error with adding task", 500
 
@@ -233,15 +239,28 @@ def deleteTask():
     try:
         with sqlite3.connect("database.db") as con:
             cur = con.cursor()
-            cur.execute(
-                """
-                DELETE FROM Task WHERE taskID = (?)
-                """,
-                (taskID,),
-            )
-        return "Task successfully deleted", 200
+            rows = cur.execute(
+                "SELECT taskID FROM Task WHERE taskID = (?)", (taskID,)
+            ).fetchall()
+            if len(rows) == 0:
+                return "That taskID doesn't exists.", 404
+            else:
+                cur.execute(
+                    """
+                    DELETE FROM Task WHERE taskID = (?)
+                    """,
+                    (taskID,),
+                )
+            return "Task successfully deleted", 200
     except:
         return "Error with deleting task", 500
+
+
+def row_to_dict(cursor: sqlite3.Cursor, row: sqlite3.Row) -> dict:
+    data = {}
+    for idx, col in enumerate(cursor.description):
+        data[col[0]] = row[idx]
+    return data
 
 
 @app.route("/api/getTask", methods=["GET"])
@@ -249,10 +268,10 @@ def getTask():
 
     # Checks if the user gave all necessary information
     pageNumber = request.args.get("pageNumber")
-    userID = request.args.get("user")
+    userID = request.args.get("username")
     filterTag = (
         request.args.get("filter").upper()
-        if request.args.get("filter").upper() != None
+        if request.args.get("filter") != None
         else "%"
     )
 
@@ -262,19 +281,18 @@ def getTask():
     if not userID:
         return "Did not give a userID", 400
 
-    pageNumber = int(pageNumber)
-
-    if pageNumber < 1:
+    if not pageNumber.isdigit() or int(pageNumber) < 1:
         return "Invalid page number", 400
 
+    pageNumber = int(pageNumber)
     try:
         with sqlite3.connect("database.db") as con:
-            cur = con.cursor()
-            rows = cur.execute(
+            con.row_factory = row_to_dict
+            rows = con.execute(
                 """
                 SELECT title, description, priority, taskID 
                 FROM Task 
-                WHERE userID = (?) and priority like filterTag
+                WHERE userID = (?) and priority like (?)
                 ORDER BY createdAt
                 LIMIT (?)
                 OFFSET (?)
