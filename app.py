@@ -47,6 +47,11 @@ def _corsify_actual_response(response):
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
+def _build_cors_preflight_response():
+    response = make_response()
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "*")
+    return response
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -78,9 +83,11 @@ def login():
         return "Error with login", 500
 
 
-@app.route("/signup", methods=["POST"])
+@app.route("/signup", methods=["POST", "OPTIONS"])
 def signup():
 
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
     # Checks if the user gave all necessary information
     if not (
         "firstname" in request.json
@@ -98,25 +105,25 @@ def signup():
     # Checks if the info is valid
     if not (check_valid_credentials(username)):
         return (
-            "The username is not of the right format. Usernames must be at least 8 characters long and only contain alphanumeric characters",
+            _corsify_actual_response(jsonify("The username is not of the right format. Usernames must be at least 8 characters long and only contain alphanumeric characters")),
             400,
         )
 
     if not (check_valid_credentials(password)):
         return (
-            "The pasword is not of the right format. Passwords must be at least 8 characters long and only contain alphanumeric characters",
+            _corsify_actual_response(jsonify("The pasword is not of the right format. Passwords must be at least 8 characters long and only contain alphanumeric characters")),
             400,
         )
 
     if not (check_valid_name(firstname)):
         return (
-            "The firstname is not of the right format. Firstnames must only contain alphabetical characters",
+            _corsify_actual_response(jsonify("The firstname is not of the right format. Firstnames must only contain alphabetical characters")),
             400,
         )
 
     if not (check_valid_name(lastname)):
         return (
-            "The lastname is not of the right format. Lastnames must only contain alphabetical characters",
+            _corsify_actual_response(jsonify("The lastname is not of the right format. Lastnames must only contain alphabetical characters")),
             400,
         )
 
@@ -130,11 +137,11 @@ def signup():
                 (username, new_password, firstname, lastname),
             )
             con.commit()
-        return "User successfully added", 200
+        return _corsify_actual_response(jsonify("User successfully added")), 200
     except sqlite3.IntegrityError as err:
-        return "That username already exists. Please choose a new one.", 400
+        return _corsify_actual_response(jsonify("That username already exists. Please choose a new one.")), 400
     except:
-        return "Error with inserting user", 500
+        return _corsify_actual_response(jsonify("Error with inserting user")), 500
 
 
 @app.route("/logout", methods=["GET"])
@@ -315,7 +322,6 @@ def check_valid_name(name):
 
 def check_valid_credentials(credential):
     return len(credential) >= 8 and credential.isalnum() and not credential.isnumeric()
-
 
 if __name__ == "__main__":
     app.secret_key = b"secretkey"
