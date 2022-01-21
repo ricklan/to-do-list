@@ -205,20 +205,30 @@ def editTask():
     taskID = request.json["taskID"]
     priority = request.json["priority"]
 
+    # Check if the priority is one of H (High), M (Medium), L (Low)
+    if priority != "H" and priority != "M" and priority != "L":
+        return "The priority is invalid", 404
+
     try:
         with sqlite3.connect("database.db") as con:
             cur = con.cursor()
-            cur.execute(
-                """
-                UPDATE Task 
-                SET 
-                title = (?),
-                description = (?),
-                priority = (?)
-                WHERE taskID = (?)
-                """,
-                (title, description, priority, taskID),
-            )
+            rows = cur.execute(
+                "SELECT taskID FROM Task WHERE taskID = (?)", (taskID,)
+            ).fetchall()
+            if len(rows) == 0:
+                return "That taskID doesn't exists.", 404
+            else:
+                cur.execute(
+                    """
+                    UPDATE Task 
+                    SET 
+                    title = (?),
+                    description = (?),
+                    priority = (?)
+                    WHERE taskID = (?)
+                    """,
+                    (title, description, priority, taskID),
+                )
             con.commit()
         return "Task successfully updated", 200
     except:
