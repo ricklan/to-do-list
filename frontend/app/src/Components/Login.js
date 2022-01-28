@@ -15,7 +15,7 @@ function handleLogin(e, navigate) {
     })
     .then(() => {
       errorTag.innerHTML = "";
-      navigate("/dashboard");
+      navigate("/dashboard", { state: { username: username.value } });
     })
     .catch((error) => {
       if (error.response.status === 404 || error.response.status === 400) {
