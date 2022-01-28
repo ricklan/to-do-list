@@ -274,8 +274,11 @@ def row_to_dict(cursor: sqlite3.Cursor, row: sqlite3.Row) -> dict:
     return data
 
 
-@app.route("/api/getTask", methods=["GET"])
+@app.route("/api/getTask", methods=["GET", "OPTIONS"])
 def getTask():
+
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
 
     # Checks if the user gave all necessary information
     pageNumber = request.args.get("pageNumber")
@@ -287,13 +290,13 @@ def getTask():
     )
 
     if not pageNumber:
-        return "Did not give a page number", 400
+        return _corsify_actual_response(jsonify("Did not give a page number")), 400
 
     if not userID:
-        return "Did not give a userID", 400
+        return _corsify_actual_response(jsonify("Did not give a userID")), 400
 
     if not pageNumber.isdigit() or int(pageNumber) < 1:
-        return "Invalid page number", 400
+        return _corsify_actual_response(jsonify("Invalid page number")), 400
 
     pageNumber = int(pageNumber)
     try:
@@ -310,9 +313,9 @@ def getTask():
                 """,
                 (userID, filterTag, pageNumber * 6, (pageNumber - 1) * 6),
             ).fetchall()
-        return jsonify(rows), 200
+        return _corsify_actual_response(jsonify(rows)), 200
     except:
-        return "Error with getting task", 500
+        return _corsify_actual_response(jsonify("Error with getting task")), 500
 
 
 @app.route("/")
