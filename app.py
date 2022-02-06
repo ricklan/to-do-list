@@ -153,8 +153,11 @@ def logout():
     return "Logout Successful", 200
 
 
-@app.route("/api/addTask", methods=["POST"])
+@app.route("/api/addTask", methods=["POST", "OPTIONS"])
 def addTask():
+
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
 
     # Checks if the user gave all necessary information
     if not (
@@ -163,7 +166,7 @@ def addTask():
         and "description" in request.json
         and "priority" in request.json
     ):
-        return "Did not enter all necessary information", 400
+        return _corsify_actual_response(jsonify("Did not enter all necessary information")), 400
 
     title = request.json["title"]
     description = request.json["description"]
@@ -173,7 +176,7 @@ def addTask():
 
     # Check if the priority is one of H (High), M (Medium), L (Low)
     if priority != "H" and priority != "M" and priority != "L":
-        return "The priority is invalid", 404
+        return _corsify_actual_response(jsonify("The priority is invalid")), 404
 
     try:
         with sqlite3.connect("database.db") as con:
@@ -194,9 +197,9 @@ def addTask():
                     (username, title, description, cur_day, priority),
                 )
                 con.commit()
-            return "Task successfully added", 200
+            return _corsify_actual_response(jsonify("Task successfully added")), 200
     except:
-        return "Error with adding task", 500
+        return _corsify_actual_response(jsonify("Error with adding task")), 500
 
 
 @app.route("/api/editTask", methods=["PATCH"])
