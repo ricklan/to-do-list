@@ -66,7 +66,11 @@ function Dashboard() {
       </section>
       <button onClick={toggleEditTaskPopup}>New Task</button>
       {taskEditIsOpen && (
-        <EditTask task={taskData} handleClose={toggleEditTaskPopup} />
+        <EditTask
+          task={taskData}
+          handleClose={toggleEditTaskPopup}
+          username={username}
+        />
       )}
     </>
   );
