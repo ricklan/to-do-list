@@ -4,7 +4,7 @@ import EditTask from "./EditTask";
 
 const axios = require("axios");
 let username;
-
+let curPage = 1;
 /**
  * Makes a get request to the to-do-list api to retrieve data based on pageNum and
  * filter.
@@ -21,9 +21,11 @@ function getTasks(pageNum, filter = null) {
     .get("http://127.0.0.1:5000/api/getTask", { params: data })
     .then((response) => {
       displayTasks(response.data);
+      //if this is the last page, hide the right button
+      //if this is the first page, hide the left button
     })
     .catch((error) => {
-      console.log(error.response.data);
+      console.log(error);
     });
 }
 
@@ -35,6 +37,25 @@ function displayTasks(tasks) {
   let taskWrapper = document.getElementById("displayed-tasks");
   if (tasks.length === 0) {
     taskWrapper.innerHTML = "No tasks";
+  } else {
+    taskWrapper.innerHTML = "";
+    tasks.forEach((task) => {
+      let priorityTask;
+      if (task.priority === "H") {
+        priorityTask = "task-high";
+      } else if (task.priority === "M") {
+        priorityTask = "task-medium";
+      } else {
+        priorityTask = "task-low";
+      }
+      taskWrapper.innerHTML += `<div id={task-${task.taskID} class=${priorityTask}}>
+        <h3>${task.title}</h3>
+        <p>${task.description}</p>
+        <button>complete</button>
+        <button>edit</button>
+        <button>delete</button>
+      </div>`;
+    });
   }
 }
 
@@ -48,7 +69,6 @@ function Dashboard() {
     setTaskEditIsOpen(!taskEditIsOpen);
   };
 
-  let curPage = 1;
   getTasks(curPage);
 
   return (
@@ -60,9 +80,25 @@ function Dashboard() {
       </button>
       <br />
       <section>
-        <button>left</button>
-        <div id="displayed-tasks"> tasks will go here</div>
-        <button>right</button>
+        <button
+          className="button-hide"
+          onClick={() => {
+            curPage--;
+            getTasks(curPage);
+          }}
+        >
+          left
+        </button>
+        <div id="displayed-tasks"></div>
+        <button
+          className="button-hide"
+          onClick={() => {
+            curPage++;
+            getTasks(curPage);
+          }}
+        >
+          right
+        </button>
       </section>
       <button onClick={toggleEditTaskPopup}>New Task</button>
       {taskEditIsOpen && (
