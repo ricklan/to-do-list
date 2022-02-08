@@ -5,13 +5,13 @@ import EditTask from "./EditTask";
 const axios = require("axios");
 let username;
 let curPage = 1;
+let filter = null;
 /**
  * Makes a get request to the to-do-list api to retrieve data based on pageNum and
  * filter.
  * @param {number} pageNum - the page number of the tasks to retrieve
- * @param {String} filter - the filter to apply to the tasks (H, M or L)
  */
-function getTasks(pageNum, editTask, toggleEditTaskPopup, filter = null) {
+function getTasks(pageNum, editTask, toggleEditTaskPopup) {
   let data = { username: username, pageNumber: pageNum };
   if (filter) {
     data.filter = filter;
@@ -20,7 +20,7 @@ function getTasks(pageNum, editTask, toggleEditTaskPopup, filter = null) {
   axios
     .get("http://127.0.0.1:5000/api/getTask", { params: data })
     .then((response) => {
-      displayTasks(response.data, editTask, toggleEditTaskPopup);
+      displayTasks(response.data, pageNum, editTask, toggleEditTaskPopup);
       //if this is the last page, hide the right button
       //if this is the first page, hide the left button
     })
@@ -33,7 +33,7 @@ function getTasks(pageNum, editTask, toggleEditTaskPopup, filter = null) {
  * Displays the given list of tasks on the screen.
  * @param {Array} tasks the list of tasks to display
  */
-function displayTasks(tasks, editTask, toggleEditTaskPopup) {
+function displayTasks(tasks, pageNum, editTask, toggleEditTaskPopup) {
   let taskWrapper = document.getElementById("displayed-tasks");
   if (tasks.length === 0) {
     taskWrapper.innerHTML = "No tasks";
@@ -52,18 +52,43 @@ function displayTasks(tasks, editTask, toggleEditTaskPopup) {
         <h3>${task.title}</h3>
         <p>${task.description}</p>
         <button id=task-${task.taskID}-edit-button>edit</button>
-        <button>delete</button>
+        <button id=task-${task.taskID}-delete-button>delete</button>
       </div>`;
     });
     //add event listeners to each task buttons
     tasks.forEach((task) => {
+      //edit
       document
         .getElementById(`task-${task.taskID}-edit-button`)
         .addEventListener("click", () => {
           handleEditTask(task, editTask, toggleEditTaskPopup);
         });
+
+      //delete
+      document
+        .getElementById(`task-${task.taskID}-delete-button`)
+        .addEventListener("click", () => {
+          deleteTask(
+            { taskID: task.taskID },
+            pageNum,
+            editTask,
+            toggleEditTaskPopup
+          );
+        });
     });
   }
+}
+
+function deleteTask(id, pageNum, editTask, toggleEditTaskPopup) {
+  axios
+    .delete("http://127.0.0.1:5000/api/deleteTask", { params: id })
+    .then((response) => {
+      console.log(response.data);
+      getTasks(pageNum, editTask, toggleEditTaskPopup);
+    })
+    .catch((error) => {
+      console.log(error.response);
+    });
 }
 
 function handleEditTask(task, editTask, toggleEditTaskPopup) {

@@ -57,16 +57,16 @@ function EditTask({ task, handleClose, username }) {
       <h2>New Task</h2>
       <button onClick={handleClose}>Close</button>
       <form onSubmit={(e) => handleSubmit(e, task, handleClose)}>
+        <label>Add title:</label>
         <input type="text" name="title" defaultValue={task.title} />
-        <div>Add Title</div>
         <br />
+        <label>Description:</label>
         <textarea
           name="description"
           defaultValue={task.description}
           maxLength="100"
           onChange={(e) => updateCount(e.target.value.length)}
         ></textarea>
-        <div>Enter description...</div>
         <p id="desc-count">{task.description.length}/100</p>
         <div>
           <input

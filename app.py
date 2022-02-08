@@ -243,16 +243,18 @@ def editTask():
         return _corsify_actual_response(jsonify("Error with updating task")), 500
 
 
-@app.route("/api/deleteTask", methods=["DELETE"])
+@app.route("/api/deleteTask", methods=["DELETE", "OPTIONS"])
 def deleteTask():
     """
     Deletes a task from the database
     """
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
 
     # Checks if the user gave all necessary information
     taskID = request.args.get("taskID")
     if not taskID:
-        return "Did not enter a taskID", 400
+        return _corsify_actual_response(jsonify("Did not enter a taskID")), 400
 
     try:
         with sqlite3.connect("database.db") as con:
@@ -269,9 +271,9 @@ def deleteTask():
                     """,
                     (taskID,),
                 )
-            return "Task successfully deleted", 200
+            return _corsify_actual_response(jsonify("Task successfully deleted")), 200
     except:
-        return "Error with deleting task", 500
+        return _corsify_actual_response(jsonify("Error with deleting task")), 500
 
 
 def row_to_dict(cursor: sqlite3.Cursor, row: sqlite3.Row) -> dict:
