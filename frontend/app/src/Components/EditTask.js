@@ -4,22 +4,31 @@ const axios = require("axios");
 
 function handleSubmit(e, task, handleClose) {
   e.preventDefault();
-  if (task.id) {
-    //handle edit task
-  }
-  //create new task
-  else {
-    task.title = e.target.title.value;
-    task.description = e.target.description.value;
-    if (e.target.priority.value) {
-      task.priority = e.target.priority.value;
-      document.getElementById("priority-error").innerHTML = "";
-      addTask(task, handleClose);
+  task.title = e.target.title.value;
+  task.description = e.target.description.value;
+  if (e.target.priority.value) {
+    task.priority = e.target.priority.value;
+    document.getElementById("priority-error").innerHTML = "";
+    if (task.taskID) {
+      updateTask(task, handleClose);
     } else {
-      document.getElementById("priority-error").innerHTML =
-        "Please select a priority";
+      addTask(task, handleClose);
     }
+  } else {
+    document.getElementById("priority-error").innerHTML =
+      "Please select a priority";
   }
+}
+
+function updateTask(task, handleClose) {
+  axios
+    .patch("http://127.0.0.1:5000/api/editTask", task)
+    .then(() => {
+      handleClose();
+    })
+    .catch((error) => {
+      console.log(error.message);
+    });
 }
 
 function addTask(task, handleClose) {
@@ -33,27 +42,16 @@ function addTask(task, handleClose) {
     });
 }
 
-function updateCount(e) {
+function updateCount(length) {
   let countTag = document.getElementById("desc-count");
-  let length = e.target.value.length;
   countTag.innerHTML = length + "/100";
 }
 
 function EditTask({ task, handleClose, username }) {
-  if (task) {
-    switch (task.priority) {
-      case "H":
-        document.getElementById("priority-high").checked = true;
-        break;
-      case "M":
-        document.getElementById("priority-medium").checked = true;
-        break;
-      default:
-        document.getElementById("priority-low").checked = true;
-    }
-  } else {
+  if (!task) {
     task = { title: "", description: "", priority: null, username: username };
   }
+
   return (
     <>
       <h2>New Task</h2>
@@ -66,24 +64,38 @@ function EditTask({ task, handleClose, username }) {
           name="description"
           defaultValue={task.description}
           maxLength="100"
-          onChange={(e) => updateCount(e)}
+          onChange={(e) => updateCount(e.target.value.length)}
         ></textarea>
         <div>Enter description...</div>
-        <p id="desc-count">0/100</p>
+        <p id="desc-count">{task.description.length}/100</p>
         <div>
-          <input type="radio" id="priority-high" name="priority" value="H" />{" "}
+          <input
+            type="radio"
+            id="priority-high"
+            name="priority"
+            value="H"
+            defaultChecked={task.priority === "H"}
+          />
           High
           <input
             type="radio"
             id="priority-medium"
             name="priority"
             value="M"
-          />{" "}
+            defaultChecked={task.priority === "M"}
+          />
           Medium
-          <input type="radio" id="priority-low" name="priority" value="L" /> Low
+          <input
+            type="radio"
+            id="priority-low"
+            name="priority"
+            value="L"
+            defaultChecked={task.priority === "L"}
+          />
+          Low
           <p id="priority-error"></p>
         </div>
-        <button type="submit">Create</button>
+        <button type="submit">{task.taskID ? "Update" : "Create"}</button>
       </form>
     </>
   );

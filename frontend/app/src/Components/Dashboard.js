@@ -11,7 +11,7 @@ let curPage = 1;
  * @param {number} pageNum - the page number of the tasks to retrieve
  * @param {String} filter - the filter to apply to the tasks (H, M or L)
  */
-function getTasks(pageNum, filter = null) {
+function getTasks(pageNum, editTask, toggleEditTaskPopup, filter = null) {
   let data = { username: username, pageNumber: pageNum };
   if (filter) {
     data.filter = filter;
@@ -20,7 +20,7 @@ function getTasks(pageNum, filter = null) {
   axios
     .get("http://127.0.0.1:5000/api/getTask", { params: data })
     .then((response) => {
-      displayTasks(response.data);
+      displayTasks(response.data, editTask, toggleEditTaskPopup);
       //if this is the last page, hide the right button
       //if this is the first page, hide the left button
     })
@@ -33,7 +33,7 @@ function getTasks(pageNum, filter = null) {
  * Displays the given list of tasks on the screen.
  * @param {Array} tasks the list of tasks to display
  */
-function displayTasks(tasks) {
+function displayTasks(tasks, editTask, toggleEditTaskPopup) {
   let taskWrapper = document.getElementById("displayed-tasks");
   if (tasks.length === 0) {
     taskWrapper.innerHTML = "No tasks";
@@ -48,15 +48,32 @@ function displayTasks(tasks) {
       } else {
         priorityTask = "task-low";
       }
-      taskWrapper.innerHTML += `<div id={task-${task.taskID} class=${priorityTask}}>
+      taskWrapper.innerHTML += `<div id=task-${task.taskID} class=${priorityTask}>
         <h3>${task.title}</h3>
         <p>${task.description}</p>
-        <button>complete</button>
-        <button>edit</button>
+        <button id=task-${task.taskID}-edit-button>edit</button>
         <button>delete</button>
       </div>`;
     });
+    //add event listeners to each task buttons
+    tasks.forEach((task) => {
+      document
+        .getElementById(`task-${task.taskID}-edit-button`)
+        .addEventListener("click", () => {
+          handleEditTask(task, editTask, toggleEditTaskPopup);
+        });
+    });
   }
+}
+
+function handleEditTask(task, editTask, toggleEditTaskPopup) {
+  editTask({
+    taskID: task.taskID,
+    title: task.title,
+    description: task.description,
+    priority: task.priority,
+  });
+  toggleEditTaskPopup();
 }
 
 function Dashboard() {
@@ -69,7 +86,7 @@ function Dashboard() {
     setTaskEditIsOpen(!taskEditIsOpen);
   };
 
-  getTasks(curPage);
+  getTasks(curPage, editTask, toggleEditTaskPopup);
 
   return (
     <>
@@ -84,7 +101,7 @@ function Dashboard() {
           className="button-hide"
           onClick={() => {
             curPage--;
-            getTasks(curPage);
+            getTasks(curPage, editTask, toggleEditTaskPopup);
           }}
         >
           left
@@ -94,13 +111,20 @@ function Dashboard() {
           className="button-hide"
           onClick={() => {
             curPage++;
-            getTasks(curPage);
+            getTasks(curPage, editTask, toggleEditTaskPopup);
           }}
         >
           right
         </button>
       </section>
-      <button onClick={toggleEditTaskPopup}>New Task</button>
+      <button
+        onClick={() => {
+          editTask(null);
+          toggleEditTaskPopup();
+        }}
+      >
+        New Task
+      </button>
       {taskEditIsOpen && (
         <EditTask
           task={taskData}
