@@ -51,6 +51,7 @@ def _build_cors_preflight_response():
     response = make_response()
     response.headers.add("Access-Control-Allow-Origin", "*")
     response.headers.add("Access-Control-Allow-Headers", "*")
+    response.headers.add("Access-Control-Allow-Methods", "*")
     return response
 
 @app.route("/login", methods=["POST", "OPTIONS"])
@@ -202,8 +203,11 @@ def addTask():
         return _corsify_actual_response(jsonify("Error with adding task")), 500
 
 
-@app.route("/api/editTask", methods=["PATCH"])
+@app.route("/api/editTask", methods=["PATCH", "OPTIONS"])
 def editTask():
+    
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
 
     # Checks if the user gave all necessary information
     if not (
@@ -212,7 +216,7 @@ def editTask():
         and "description" in request.json
         and "priority" in request.json
     ):
-        return "Did not enter all necessary information", 400
+        return _corsify_actual_response(jsonify("Did not enter all necessary information")), 400
 
     title = request.json["title"]
     description = request.json["description"]
@@ -234,9 +238,9 @@ def editTask():
                 (title, description, priority, taskID),
             )
             con.commit()
-        return "Task successfully updated", 200
+        return _corsify_actual_response(jsonify("Task successfully updated")), 200
     except:
-        return "Error with updating task", 500
+        return _corsify_actual_response(jsonify("Error with updating task")), 500
 
 
 @app.route("/api/deleteTask", methods=["DELETE"])
