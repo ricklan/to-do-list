@@ -101,6 +101,13 @@ function handleEditTask(task, editTask, toggleEditTaskPopup) {
   toggleEditTaskPopup();
 }
 
+function handleFilter(value, curPage, editTask, toggleEditTaskPopup) {
+  if (value) {
+    filter = value;
+  }
+  getTasks(curPage, editTask, toggleEditTaskPopup);
+}
+
 function Dashboard() {
   const { state } = useLocation();
   username = state.username;
@@ -115,8 +122,17 @@ function Dashboard() {
 
   return (
     <>
-      <p>{username}</p>
-      <p>filter will go here</p>
+      <select
+        id="filter-menu"
+        onChange={(e) =>
+          handleFilter(e.target.value, curPage, editTask, toggleEditTaskPopup)
+        }
+      >
+        <option value={null}>None</option>
+        <option value="H">High</option>
+        <option value="M">Medium</option>
+        <option value="L">Low</option>
+      </select>
       <button>
         <Link to="/">Log Out;</Link>
       </button>
