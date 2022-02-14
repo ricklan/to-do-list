@@ -21,6 +21,9 @@ Yellow - #FBE489
 .tasque-boy {
   background-color: #091540;
   width: 70%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
 }
 
 .error {

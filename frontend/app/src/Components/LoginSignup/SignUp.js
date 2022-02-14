@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "./LoginSignup.css";
+import boy from "../../images/boy.svg";
 
 const axios = require("axios");
 
@@ -144,7 +145,9 @@ function SignUp() {
         </form>
         <Link to="/">Log In</Link>
       </section>
-      <section className="tasque-boy"></section>
+      <section className="tasque-boy">
+        <img src={boy} alt="Boy writing in notepad" />
+      </section>
     </div>
   );
 }

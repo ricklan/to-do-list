@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./LoginSignup.css";
+import boy from "../../images/boy.svg";
 
 const axios = require("axios");
 
@@ -54,7 +55,9 @@ function Login() {
         </form>
         <Link to="/signup">Sign Up</Link>
       </section>
-      <section className="tasque-boy"></section>
+      <section className="tasque-boy">
+        <img src={boy} alt="Boy writing in notepad" />
+      </section>
     </div>
   );
 }
