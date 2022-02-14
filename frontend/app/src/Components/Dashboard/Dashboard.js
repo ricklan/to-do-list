@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import EditTask from "./EditTask";
+import EditTask from "../EditTask/EditTask";
 
 const axios = require("axios");
 let username;
@@ -122,6 +122,7 @@ function Dashboard() {
 
   return (
     <>
+      <label>Filter: </label>
       <select
         id="filter-menu"
         onChange={(e) =>
