@@ -1,0 +1,40 @@
+/*
+Dark Blue - #091540
+Light Blue - #ABD2FA
+Red - #F2755C
+Orange - #FCBF49
+Yellow - #FBE489
+*/
+
+.login-signup {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+.credentials {
+  background-color: #abd2fa;
+  width: 30%;
+  padding: 0 5%;
+}
+
+.tasque-boy {
+  background-color: #091540;
+  width: 70%;
+}
+
+.error {
+  font-size: 0.8em;
+  color: red;
+  margin: 0;
+}
+
+#error-login,
+#error-submit {
+  display: inline;
+  margin-left: 15px;
+}
+
+#login-password-label {
+  margin-top: 15px;
+}
