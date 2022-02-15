@@ -6,7 +6,7 @@ import "./Dashboard.css";
 const axios = require("axios");
 let username;
 let curPage = 1;
-let filter = null;
+let filter = "None";
 /**
  * Makes a get request to the to-do-list api to retrieve data based on pageNum and
  * filter.
@@ -14,7 +14,7 @@ let filter = null;
  */
 function getTasks(pageNum, editTask, toggleEditTaskPopup) {
   let data = { username: username, pageNumber: pageNum };
-  if (filter) {
+  if (filter !== "None") {
     data.filter = filter;
   }
 
@@ -123,25 +123,36 @@ function Dashboard() {
 
   return (
     <>
-      <label>Filter: </label>
-      <select
-        id="filter-menu"
-        onChange={(e) =>
-          handleFilter(e.target.value, curPage, editTask, toggleEditTaskPopup)
-        }
-      >
-        <option value={null}>None</option>
-        <option value="H">High</option>
-        <option value="M">Medium</option>
-        <option value="L">Low</option>
-      </select>
-      <button>
-        <Link to="/">Log Out;</Link>
-      </button>
-      <br />
+      <header>
+        <h1 id="dashboard-logo">Tasque</h1>
+        <div id="filter">
+          <label>Filter: </label>
+          <select
+            id="filter-menu"
+            onChange={(e) =>
+              handleFilter(
+                e.target.value,
+                curPage,
+                editTask,
+                toggleEditTaskPopup
+              )
+            }
+          >
+            <option value={null}>None</option>
+            <option value="H">High</option>
+            <option value="M">Medium</option>
+            <option value="L">Low</option>
+          </select>
+        </div>
+        <div id="logout-wrapper">
+          <button>
+            <Link to="/">Log Out</Link>
+          </button>
+        </div>
+      </header>
       <section>
         <button
-          className="button-hide"
+          className="button-nav-fade"
           onClick={() => {
             curPage--;
             getTasks(curPage, editTask, toggleEditTaskPopup);

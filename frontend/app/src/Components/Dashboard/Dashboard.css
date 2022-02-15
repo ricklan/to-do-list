@@ -1,0 +1,83 @@
+/*
+Dark Blue - #091540
+Light Blue - #ABD2FA
+Red - #F2755C
+Orange - #FCBF49
+Yellow - #FBE489
+*/
+
+.task-high {
+  background-color: #f2755c;
+}
+
+.task-medium {
+  background-color: #fcbf49;
+}
+
+.task-low {
+  background-color: #fbe489;
+}
+
+.button-nav-fade {
+  /* add code */
+}
+
+.button-nav-show {
+  /*add code*/
+}
+
+#dashboard-logo {
+  margin: 0;
+  color: #abd2fa;
+  flex-grow: 1;
+  padding: 10px 5%;
+  font-size: 5em;
+}
+
+#filter {
+  flex-grow: 1;
+  margin: auto;
+}
+
+#filter label {
+  display: inline;
+  color: #abd2fa;
+}
+
+#filter select {
+  background-color: #abd2fa;
+  border: none;
+  font-family: "Rubik", sans-serif;
+  border-radius: 5px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  margin-left: 5px;
+}
+
+#logout-wrapper {
+  flex-grow: 15;
+  text-align: right;
+  margin: auto 3%;
+}
+
+#logout-wrapper button {
+  background-color: #abd2fa;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-family: "Rubik", sans-serif;
+  font-size: 1em;
+}
+
+#logout-wrapper button:hover {
+  background-color: #e7f3ff;
+}
+
+#logout-wrapper button:active {
+  background-color: #abd2fa;
+}
+
+#logout-wrapper button a {
+  text-decoration: none;
+  color: #091540;
+}

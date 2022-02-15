@@ -9,8 +9,13 @@ Yellow - #FBE489
 
 /*****GLOBAL STYLES****/
 
+header {
+  display: flex;
+}
+
 body {
   font-family: "Rubik", sans-serif;
+  background-color: #091540;
 }
 
 h1 {
