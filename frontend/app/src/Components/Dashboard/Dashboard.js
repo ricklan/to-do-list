@@ -49,11 +49,15 @@ function displayTasks(tasks, pageNum, editTask, toggleEditTaskPopup) {
       } else {
         priorityTask = "task-low";
       }
-      taskWrapper.innerHTML += `<div id=task-${task.taskID} class=${priorityTask}>
-        <h3>${task.title}</h3>
-        <p>${task.description}</p>
-        <button id=task-${task.taskID}-edit-button>edit</button>
-        <button id=task-${task.taskID}-delete-button>delete</button>
+      taskWrapper.innerHTML += `<div id=task-${task.taskID} class="task ${priorityTask}">
+        <div class="task-content">
+          <h3>${task.title}</h3>
+          <p>${task.description}</p>
+          <div class="task-buttons">
+            <button id=task-${task.taskID}-edit-button>edit</button>
+            <button id=task-${task.taskID}-delete-button>delete</button>
+          </div>
+        </div>
       </div>`;
     });
     //add event listeners to each task buttons
@@ -150,25 +154,25 @@ function Dashboard() {
           </button>
         </div>
       </header>
-      <section>
+      <section className="content-wrapper">
         <button
-          className="button-nav-fade"
+          className="button-nav-fade next-prev-page"
           onClick={() => {
             curPage--;
             getTasks(curPage, editTask, toggleEditTaskPopup);
           }}
         >
-          left
+          &lt;
         </button>
         <div id="displayed-tasks"></div>
         <button
-          className="button-hide"
+          className="button-hide next-prev-page"
           onClick={() => {
             curPage++;
             getTasks(curPage, editTask, toggleEditTaskPopup);
           }}
         >
-          right
+          &gt;
         </button>
       </section>
       <button
@@ -176,8 +180,9 @@ function Dashboard() {
           editTask(null);
           toggleEditTaskPopup();
         }}
+        className="new-task-button"
       >
-        New Task
+        New Task +
       </button>
       {taskEditIsOpen && (
         <EditTask

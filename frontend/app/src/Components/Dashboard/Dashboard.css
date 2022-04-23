@@ -18,12 +18,93 @@ Yellow - #FBE489
   background-color: #fbe489;
 }
 
+.content-wrapper {
+  display: flex;
+}
+
+#displayed-tasks {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  width: 30%;
+  flex-wrap: wrap;
+}
+
+.task {
+  width: 30%;
+  height: 45%;
+  flex-wrap: wrap;
+  border-radius: 10px;
+  box-shadow: 10px 10px #030a22;
+  color: #091540;
+  margin-left: 3%;
+}
+
+.task button {
+  background: none;
+  border: none;
+  color: #091540;
+  font-family: "Rubik", sans-serif;
+  font-weight: 700;
+}
+
+.task-content {
+  display: flex;
+  flex-flow: column;
+  padding: 8%;
+  height: 74%;
+}
+
+.task-buttons {
+  margin-top: auto;
+}
+
+.task h3 {
+  margin: 0;
+  font-size: 1.3em;
+  margin-bottom: 8px;
+}
+
+.task p {
+  margin: 0;
+  font-size: 0.9em;
+}
+
+.next-prev-page {
+  font-family: "Rubik", sans-serif;
+  background-color: #091540;
+  color: #abd2fa;
+  font-size: 6em;
+  border: none;
+  padding: 10% 5%;
+  margin-left: 10px;
+  margin-right: 10px;
+  border-radius: 15px;
+}
+
+.next-prev-page:hover {
+  background-color: #abd2fa;
+  color: #091540;
+}
+
 .button-nav-fade {
   /* add code */
 }
 
 .button-nav-show {
   /*add code*/
+}
+
+.new-task-button {
+  background-color: #abd2fa;
+  border: none;
+  border-radius: 25px;
+  font-family: "Rubik", sans-serif;
+  font-size: 1.5em;
+  font-weight: 600;
+  margin-left: 5%;
+  margin-top: 20px;
+  padding: 10px 30px;
 }
 
 #dashboard-logo {
