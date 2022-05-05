@@ -300,7 +300,11 @@ def getTask():
             con.row_factory = row_to_dict
             rows = con.execute(
                 """
-                SELECT title, description, priority, taskID 
+                SELECT title, description, priority, taskID, 
+                CASE
+                    WHEN COUNT(title) % 6 = 0 THEN COUNT(title) / 6
+                    ELSE (COUNT(title) / 6) + 1
+                END AS numPages
                 FROM Task 
                 WHERE userID = (?) and priority like (?)
                 ORDER BY createdAt
