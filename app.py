@@ -56,11 +56,20 @@ def _build_cors_preflight_response():
     return response
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["POST", "OPTIONS"])
 def login():
+
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+
     # Checks if the user gave all necessary information
     if not ("username" in request.json and "password" in request.json):
-        return "Did not enter all necessary information", 400
+        return (
+            _corsify_actual_response(
+                jsonify("Did not enter all necessary information")
+            ),
+            400,
+        )
 
     username = request.json["username"]
     password = request.json["password"]
@@ -72,22 +81,22 @@ def login():
                 "SELECT password FROM User WHERE username = (?)", (username,)
             ).fetchall()
         if len(rows) == 0:
-            return "Username not found", 404
+            return _corsify_actual_response(jsonify("Username not found")), 404
         else:
             if sha256_crypt.verify(password, rows[0][0]):
 
-                return (
-                    "Successfully logged in",
-                    200,
-                )  # Maybe return user's first and/or last name
+                return _corsify_actual_response(jsonify("Successfully logged in")), 200
             else:
-                return "Password not found", 404
+                return _corsify_actual_response(jsonify("Password not found")), 404
     except:
-        return "Error with login", 500
+        return _corsify_actual_response(jsonify("Error with login")), 500
 
 
-@app.route("/signup", methods=["POST"])
+@app.route("/signup", methods=["POST", "OPTIONS"])
 def signup():
+
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
 
     # Checks if the user gave all necessary information
     if not (
@@ -96,7 +105,12 @@ def signup():
         and "username" in request.json
         and "password" in request.json
     ):
-        return "Did not enter all necessary information", 400
+        return (
+            _corsify_actual_response(
+                jsonify("Did not enter all necessary information")
+            ),
+            400,
+        )
 
     firstname = request.json["firstname"]
     lastname = request.json["lastname"]
@@ -106,29 +120,44 @@ def signup():
     # Checks if the info is valid
     if not (check_valid_credentials(username)):
         return (
-            "The username is not of the right format. Usernames must be at least 8 characters long and only contain alphanumeric characters",
+            _corsify_actual_response(
+                jsonify(
+                    "The username is not of the right format. Usernames must be at least 8 characters long and only contain alphanumeric characters"
+                )
+            ),
             400,
         )
 
     if not (check_valid_credentials(password)):
         return (
-            "The pasword is not of the right format. Passwords must be at least 8 characters long and only contain alphanumeric characters",
+            _corsify_actual_response(
+                jsonify(
+                    "The pasword is not of the right format. Passwords must be at least 8 characters long and only contain alphanumeric characters"
+                )
+            ),
             400,
         )
 
     if not (check_valid_name(firstname)):
         return (
-            "The firstname is not of the right format. Firstnames must only contain alphabetical characters",
+            _corsify_actual_response(
+                jsonify(
+                    "The firstname is not of the right format. Firstnames must only contain alphabetical characters"
+                )
+            ),
             400,
         )
 
     if not (check_valid_name(lastname)):
         return (
-            "The lastname is not of the right format. Lastnames must only contain alphabetical characters",
+            _corsify_actual_response(
+                jsonify(
+                    "The lastname is not of the right format. Lastnames must only contain alphabetical characters"
+                )
+            ),
             400,
         )
 
-    # Stores the info in the db
     try:
         new_password = sha256_crypt.hash(password)
         with sqlite3.connect("database.db") as con:
@@ -138,20 +167,23 @@ def signup():
                 (username, new_password, firstname, lastname),
             )
             con.commit()
-        return "User successfully added", 200
+        return _corsify_actual_response(jsonify("User successfully added")), 200
     except sqlite3.IntegrityError as err:
-        return "That username already exists. Please choose a new one.", 400
+        return (
+            _corsify_actual_response(
+                jsonify("That username already exists. Please choose a new one.")
+            ),
+            400,
+        )
     except:
-        return "Error with inserting user", 500
+        return _corsify_actual_response(jsonify("Error with inserting user")), 500
 
 
-@app.route("/logout", methods=["GET"])
-def logout():
-    return "Logout Successful", 200
-
-
-@app.route("/api/addTask", methods=["POST"])
+@app.route("/api/addTask", methods=["POST", "OPTIONS"])
 def addTask():
+
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
 
     # Checks if the user gave all necessary information
     if not (
@@ -160,7 +192,12 @@ def addTask():
         and "description" in request.json
         and "priority" in request.json
     ):
-        return "Did not enter all necessary information", 400
+        return (
+            _corsify_actual_response(
+                jsonify("Did not enter all necessary information")
+            ),
+            400,
+        )
 
     title = request.json["title"]
     description = request.json["description"]
@@ -170,7 +207,7 @@ def addTask():
 
     # Check if the priority is one of H (High), M (Medium), L (Low)
     if priority != "H" and priority != "M" and priority != "L":
-        return "The priority is invalid", 404
+        return _corsify_actual_response(jsonify("The priority is invalid")), 404
 
     try:
         with sqlite3.connect("database.db") as con:
@@ -179,7 +216,10 @@ def addTask():
                 "SELECT username FROM User WHERE username = (?)", (username,)
             ).fetchall()
             if len(rows) == 0:
-                return "That username doesn't exists.", 404
+                return (
+                    _corsify_actual_response(jsonify("That username doesn't exist")),
+                    404,
+                )
             else:
                 cur.execute(
                     """
@@ -191,13 +231,16 @@ def addTask():
                     (username, title, description, cur_day, priority),
                 )
                 con.commit()
-            return "Task successfully added", 200
+            return _corsify_actual_response(jsonify("Task successfully added")), 200
     except:
-        return "Error with adding task", 500
+        return _corsify_actual_response(jsonify("Error with adding task")), 500
 
 
-@app.route("/api/editTask", methods=["PATCH"])
+@app.route("/api/editTask", methods=["PATCH", "OPTIONS"])
 def editTask():
+
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
 
     # Checks if the user gave all necessary information
     if not (
@@ -206,7 +249,12 @@ def editTask():
         and "description" in request.json
         and "priority" in request.json
     ):
-        return "Did not enter all necessary information", 400
+        return (
+            _corsify_actual_response(
+                jsonify("Did not enter all necessary information")
+            ),
+            400,
+        )
 
     title = request.json["title"]
     description = request.json["description"]
@@ -215,7 +263,7 @@ def editTask():
 
     # Check if the priority is one of H (High), M (Medium), L (Low)
     if priority != "H" and priority != "M" and priority != "L":
-        return "The priority is invalid", 404
+        return _corsify_actual_response(jsonify("That priority is invalid")), 404
 
     try:
         with sqlite3.connect("database.db") as con:
@@ -224,7 +272,10 @@ def editTask():
                 "SELECT taskID FROM Task WHERE taskID = (?)", (taskID,)
             ).fetchall()
             if len(rows) == 0:
-                return "That taskID doesn't exists.", 404
+                return (
+                    _corsify_actual_response(jsonify("That taskID doesn't exist")),
+                    404,
+                )
             else:
                 cur.execute(
                     """
@@ -238,21 +289,21 @@ def editTask():
                     (title, description, priority, taskID),
                 )
             con.commit()
-        return "Task successfully updated", 200
+        return _corsify_actual_response(jsonify("Task successfully updated")), 200
     except:
-        return "Error with updating task", 500
+        return _corsify_actual_response(jsonify("Error with updating task")), 500
 
 
-@app.route("/api/deleteTask", methods=["DELETE"])
+@app.route("/api/deleteTask", methods=["DELETE", "OPTIONS"])
 def deleteTask():
-    """
-    Deletes a task from the database
-    """
+
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
 
     # Checks if the user gave all necessary information
     taskID = request.args.get("taskID")
     if not taskID:
-        return "Did not enter a taskID", 400
+        return _corsify_actual_response(jsonify("Did not enter a taskID")), 400
 
     try:
         with sqlite3.connect("database.db") as con:
@@ -261,7 +312,10 @@ def deleteTask():
                 "SELECT taskID FROM Task WHERE taskID = (?)", (taskID,)
             ).fetchall()
             if len(rows) == 0:
-                return "That taskID doesn't exists.", 404
+                return (
+                    _corsify_actual_response(jsonify("That taskID doesn't exist")),
+                    404,
+                )
             else:
                 cur.execute(
                     """
@@ -269,9 +323,9 @@ def deleteTask():
                     """,
                     (taskID,),
                 )
-            return "Task successfully deleted", 200
+            return _corsify_actual_response(jsonify("Task successfully deleted")), 200
     except:
-        return "Error with deleting task", 500
+        return _corsify_actual_response(jsonify("Error with deleting task")), 500
 
 
 def row_to_dict(cursor: sqlite3.Cursor, row: sqlite3.Row) -> dict:
@@ -281,8 +335,11 @@ def row_to_dict(cursor: sqlite3.Cursor, row: sqlite3.Row) -> dict:
     return data
 
 
-@app.route("/api/getTask", methods=["GET"])
+@app.route("/api/getTask", methods=["GET", "OPTIONS"])
 def getTask():
+
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
 
     # Checks if the user gave all necessary information
     pageNumber = request.args.get("pageNumber")
@@ -294,13 +351,13 @@ def getTask():
     )
 
     if not pageNumber:
-        return "Did not give a page number", 400
+        return _corsify_actual_response(jsonify("Did not give a page number")), 400
 
     if not userID:
-        return "Did not give a username", 400
+        return _corsify_actual_response(jsonify("Did not give a username")), 400
 
     if not pageNumber.isdigit() or int(pageNumber) < 1:
-        return "Invalid page number", 400
+        return _corsify_actual_response(jsonify("Invalid page number")), 400
 
     pageNumber = int(pageNumber)
     try:
@@ -333,9 +390,12 @@ def getTask():
                 """,
                 (userID, filterTag, pageNumber * 6, (pageNumber - 1) * 6, userID),
             ).fetchall()
-        return jsonify(rows), 200
+        return _corsify_actual_response(jsonify(rows)), 200
     except Exception as e:
-        return "Error with getting task: {}".format(e), 500
+        return (
+            _corsify_actual_response(jsonify("Error with getting task: {}".format(e))),
+            500,
+        )
 
 
 @app.route("/")
