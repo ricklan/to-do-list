@@ -14,6 +14,7 @@ def test_valid_getTask():
             "priority": "H",
             "taskID": 1,
             "title": "Test1",
+            "totalNumPages": 1,
         }
     ]
     assert response.status_code == 200 and response.json() == result

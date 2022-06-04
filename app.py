@@ -54,15 +54,28 @@ def _build_cors_preflight_response():
     response.headers.add("Access-Control-Allow-Methods", "*")
     return response
 
+def _build_cors_preflight_response():
+    response = make_response()
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "*")
+    response.headers.add("Access-Control-Allow-Methods", "*")
+    return response
+
+
 @app.route("/login", methods=["POST", "OPTIONS"])
 def login():
 
     if request.method == "OPTIONS":
         return _build_cors_preflight_response()
-    
+
     # Checks if the user gave all necessary information
     if not ("username" in request.json and "password" in request.json):
-        return _corsify_actual_response(jsonify("Did not enter all necessary information")), 400
+        return (
+            _corsify_actual_response(
+                jsonify("Did not enter all necessary information")
+            ),
+            400,
+        )
 
     username = request.json["username"]
     password = request.json["password"]
@@ -78,10 +91,7 @@ def login():
         else:
             if sha256_crypt.verify(password, rows[0][0]):
 
-                return (
-                    _corsify_actual_response(jsonify("Successfully logged in")),
-                    200,
-                )  # Maybe return user's first and/or last name
+                return _corsify_actual_response(jsonify("Successfully logged in")), 200
             else:
                 return _corsify_actual_response(jsonify("Password not found")), 404
     except:
@@ -100,7 +110,12 @@ def signup():
         and "username" in request.json
         and "password" in request.json
     ):
-        return "Did not enter all necessary information", 400
+        return (
+            _corsify_actual_response(
+                jsonify("Did not enter all necessary information")
+            ),
+            400,
+        )
 
     firstname = request.json["firstname"]
     lastname = request.json["lastname"]
@@ -110,29 +125,44 @@ def signup():
     # Checks if the info is valid
     if not (check_valid_credentials(username)):
         return (
-            _corsify_actual_response(jsonify("The username is not of the right format. Usernames must be at least 8 characters long and only contain alphanumeric characters")),
+            _corsify_actual_response(
+                jsonify(
+                    "The username is not of the right format. Usernames must be at least 8 characters long and only contain alphanumeric characters"
+                )
+            ),
             400,
         )
 
     if not (check_valid_credentials(password)):
         return (
-            _corsify_actual_response(jsonify("The pasword is not of the right format. Passwords must be at least 8 characters long and only contain alphanumeric characters")),
+            _corsify_actual_response(
+                jsonify(
+                    "The pasword is not of the right format. Passwords must be at least 8 characters long and only contain alphanumeric characters"
+                )
+            ),
             400,
         )
 
     if not (check_valid_name(firstname)):
         return (
-            _corsify_actual_response(jsonify("The firstname is not of the right format. Firstnames must only contain alphabetical characters")),
+            _corsify_actual_response(
+                jsonify(
+                    "The firstname is not of the right format. Firstnames must only contain alphabetical characters"
+                )
+            ),
             400,
         )
 
     if not (check_valid_name(lastname)):
         return (
-            _corsify_actual_response(jsonify("The lastname is not of the right format. Lastnames must only contain alphabetical characters")),
+            _corsify_actual_response(
+                jsonify(
+                    "The lastname is not of the right format. Lastnames must only contain alphabetical characters"
+                )
+            ),
             400,
         )
 
-    # Stores the info in the db
     try:
         new_password = sha256_crypt.hash(password)
         with sqlite3.connect("database.db") as con:
@@ -144,14 +174,14 @@ def signup():
             con.commit()
         return _corsify_actual_response(jsonify("User successfully added")), 200
     except sqlite3.IntegrityError as err:
-        return _corsify_actual_response(jsonify("That username already exists. Please choose a new one.")), 400
+        return (
+            _corsify_actual_response(
+                jsonify("That username already exists. Please choose a new one.")
+            ),
+            400,
+        )
     except:
         return _corsify_actual_response(jsonify("Error with inserting user")), 500
-
-
-@app.route("/logout", methods=["GET"])
-def logout():
-    return "Logout Successful", 200
 
 
 @app.route("/api/addTask", methods=["POST", "OPTIONS"])
@@ -167,7 +197,12 @@ def addTask():
         and "description" in request.json
         and "priority" in request.json
     ):
-        return _corsify_actual_response(jsonify("Did not enter all necessary information")), 400
+        return (
+            _corsify_actual_response(
+                jsonify("Did not enter all necessary information")
+            ),
+            400,
+        )
 
     title = request.json["title"]
     description = request.json["description"]
@@ -186,7 +221,10 @@ def addTask():
                 "SELECT username FROM User WHERE username = (?)", (username,)
             ).fetchall()
             if len(rows) == 0:
-                return "That username doesn't exists.", 404
+                return (
+                    _corsify_actual_response(jsonify("That username doesn't exist")),
+                    404,
+                )
             else:
                 cur.execute(
                     """
@@ -209,6 +247,9 @@ def editTask():
     if request.method == "OPTIONS":
         return _build_cors_preflight_response()
 
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+
     # Checks if the user gave all necessary information
     if not (
         "taskID" in request.json
@@ -216,7 +257,12 @@ def editTask():
         and "description" in request.json
         and "priority" in request.json
     ):
-        return _corsify_actual_response(jsonify("Did not enter all necessary information")), 400
+        return (
+            _corsify_actual_response(
+                jsonify("Did not enter all necessary information")
+            ),
+            400,
+        )
 
     title = request.json["title"]
     description = request.json["description"]
@@ -225,7 +271,7 @@ def editTask():
 
     # Check if the priority is one of H (High), M (Medium), L (Low)
     if priority != "H" and priority != "M" and priority != "L":
-        return "The priority is invalid", 404
+        return _corsify_actual_response(jsonify("That priority is invalid")), 404
 
     try:
         with sqlite3.connect("database.db") as con:
@@ -234,7 +280,10 @@ def editTask():
                 "SELECT taskID FROM Task WHERE taskID = (?)", (taskID,)
             ).fetchall()
             if len(rows) == 0:
-                return "That taskID doesn't exists.", 404
+                return (
+                    _corsify_actual_response(jsonify("That taskID doesn't exist")),
+                    404,
+                )
             else:
                 cur.execute(
                     """
@@ -255,9 +304,6 @@ def editTask():
 
 @app.route("/api/deleteTask", methods=["DELETE", "OPTIONS"])
 def deleteTask():
-    """
-    Deletes a task from the database
-    """
     if request.method == "OPTIONS":
         return _build_cors_preflight_response()
 
@@ -273,7 +319,10 @@ def deleteTask():
                 "SELECT taskID FROM Task WHERE taskID = (?)", (taskID,)
             ).fetchall()
             if len(rows) == 0:
-                return "That taskID doesn't exists.", 404
+                return (
+                    _corsify_actual_response(jsonify("That taskID doesn't exist")),
+                    404,
+                )
             else:
                 cur.execute(
                     """
@@ -312,7 +361,7 @@ def getTask():
         return _corsify_actual_response(jsonify("Did not give a page number")), 400
 
     if not userID:
-        return _corsify_actual_response(jsonify("Did not give a userID")), 400
+        return _corsify_actual_response(jsonify("Did not give a username")), 400
 
     if not pageNumber.isdigit() or int(pageNumber) < 1:
         return _corsify_actual_response(jsonify("Invalid page number")), 400
@@ -323,22 +372,37 @@ def getTask():
             con.row_factory = row_to_dict
             rows = con.execute(
                 """
-                SELECT title, description, priority, taskID, 
-                CASE
-                    WHEN COUNT(title) % 6 = 0 THEN COUNT(title) / 6
-                    ELSE (COUNT(title) / 6) + 1
-                END AS numPages
-                FROM Task 
-                WHERE userID = (?) and priority like (?)
-                ORDER BY createdAt
-                LIMIT (?)
-                OFFSET (?)
+                SELECT * FROM
+                (
+                    SELECT title, description, priority, taskID 
+                    FROM Task 
+                    WHERE userID = (?) and priority like (?)
+                    ORDER BY createdAt
+                    LIMIT (?)
+                    OFFSET (?)
+                ) t1
+                
+                INNER JOIN
+                
+                (
+                    SELECT 
+                    CASE
+                        WHEN COUNT(title) % 6 = 0 THEN COUNT(title) / 6
+                        ELSE (COUNT(title) / 6) + 1
+                    END AS totalNumPages
+                    FROM Task 
+                    WHERE userID = (?)
+                ) t2
+                
                 """,
-                (userID, filterTag, pageNumber * 6, (pageNumber - 1) * 6),
+                (userID, filterTag, pageNumber * 6, (pageNumber - 1) * 6, userID),
             ).fetchall()
         return _corsify_actual_response(jsonify(rows)), 200
-    except:
-        return _corsify_actual_response(jsonify("Error with getting task")), 500
+    except Exception as e:
+        return (
+            _corsify_actual_response(jsonify("Error with getting task: {}".format(e))),
+            500,
+        )
 
 
 @app.route("/")
