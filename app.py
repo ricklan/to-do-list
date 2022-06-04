@@ -48,6 +48,14 @@ def _corsify_actual_response(response):
     return response
 
 
+def _build_cors_preflight_response():
+    response = make_response()
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "*")
+    response.headers.add("Access-Control-Allow-Methods", "*")
+    return response
+
+
 @app.route("/login", methods=["POST"])
 def login():
     # Checks if the user gave all necessary information
@@ -289,7 +297,7 @@ def getTask():
         return "Did not give a page number", 400
 
     if not userID:
-        return "Did not give a userID", 400
+        return "Did not give a username", 400
 
     if not pageNumber.isdigit() or int(pageNumber) < 1:
         return "Invalid page number", 400
@@ -300,22 +308,34 @@ def getTask():
             con.row_factory = row_to_dict
             rows = con.execute(
                 """
-                SELECT title, description, priority, taskID, 
-                CASE
-                    WHEN COUNT(title) % 6 = 0 THEN COUNT(title) / 6
-                    ELSE (COUNT(title) / 6) + 1
-                END AS numPages
-                FROM Task 
-                WHERE userID = (?) and priority like (?)
-                ORDER BY createdAt
-                LIMIT (?)
-                OFFSET (?)
+                SELECT * FROM
+                (
+                    SELECT title, description, priority, taskID 
+                    FROM Task 
+                    WHERE userID = (?) and priority like (?)
+                    ORDER BY createdAt
+                    LIMIT (?)
+                    OFFSET (?)
+                ) t1
+                
+                INNER JOIN
+                
+                (
+                    SELECT 
+                    CASE
+                        WHEN COUNT(title) % 6 = 0 THEN COUNT(title) / 6
+                        ELSE (COUNT(title) / 6) + 1
+                    END AS totalNumPages
+                    FROM Task 
+                    WHERE userID = (?)
+                ) t2
+                
                 """,
-                (userID, filterTag, pageNumber * 6, (pageNumber - 1) * 6),
+                (userID, filterTag, pageNumber * 6, (pageNumber - 1) * 6, userID),
             ).fetchall()
         return jsonify(rows), 200
-    except:
-        return "Error with getting task", 500
+    except Exception as e:
+        return "Error with getting task: {}".format(e), 500
 
 
 @app.route("/")
