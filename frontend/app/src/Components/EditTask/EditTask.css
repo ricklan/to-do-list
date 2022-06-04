@@ -110,34 +110,70 @@ Yellow - #FBE489
 }
 
 .bottom-row {
-    display: inline-flex;
+    display: flex;
+    align-items: center;
+    gap: 20px;
     width: 100%;
 }
 
-.bottom-row p {
-
-}
-
-.bottom-row button {
-    /* flex-grow: 1; */
-    justify-content: flex-end;
-}
-
-.priority-radio {
-    /* flex-grow: 2; */
-    display: flex;
-}
-
-.priority-radio h3 {
+.bottom-row h3 {
     margin: 0;
 }
 
-.priority-radio input {
-    opacity: 0;
-    position: fixed;
-    width: 0;
+.bottom-row button {
+    font-family: "Rubik", sans-serif;
+    font-size: 1em;
+    background-color: #091540;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    padding: 10px 0;
 }
 
-.priority-radio label {
+.priority-radio-w-error {
+    flex-grow: 4;
+}
+
+.priority-radio {
+    display: flex;
+}
+
+.radio-pair {
+    display: flex;
     flex-grow: 1;
+    justify-content: center;
+}
+
+.radio-pair input {
+    display: none;
+}
+
+.radio-pair label {
+    margin: 5px 0;
+}
+
+.selected-H, .selected-L, .selected-M {
+    border-radius: 30px;
+}
+
+.selected-H {
+    background-color: #F2755C;
+}
+
+.selected-M {
+    background-color: #FCBF49;
+}
+
+.selected-L {
+    background-color: #FBE489;
+}
+
+#priority-error {
+    margin: 0;
+    font-size: 0.8em;
+    color: red;
+}
+
+.bottom-row button {
+    flex-grow: 2;
 }

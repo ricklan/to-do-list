@@ -49,6 +49,21 @@ function updateCount(length) {
   countTag.innerHTML = length + "/100";
 }
 
+function handlePrioritySelect() {
+  const priorities = document.querySelectorAll(".radio-pair");
+  priorities.forEach((prioritySelection) => {
+    const priority = prioritySelection.firstChild.value;
+    if (!prioritySelection.firstChild.checked) {
+      prioritySelection.classList.remove(`selected-${priority}`);
+    } else {
+      prioritySelection.classList.add(`selected-${priority}`);
+    }
+  });
+
+  const error = document.getElementById("priority-error");
+  error.innerHTML = "";
+}
+
 function EditTask({ task, handleClose, username }) {
   if (!task) {
     task = { title: "", description: "", priority: null, username: username };
@@ -86,34 +101,57 @@ function EditTask({ task, handleClose, username }) {
               <img src={tasqueManager} alt="" className="tasque" />
             </div>
             <div className="bottom-row">
-              <div className="priority-radio">
-                <h3>Priority: </h3>
-                <input
-                  type="radio"
-                  id="priority-high"
-                  name="priority"
-                  value="H"
-                  defaultChecked={task.priority === "H"}
-                />
-                <label htmlFor="priority-high">High</label>
-                <input
-                  type="radio"
-                  id="priority-medium"
-                  name="priority"
-                  value="M"
-                  defaultChecked={task.priority === "M"}
-                />
-                <label htmlFor="priority-medium">Medium</label>
-                <input
-                  type="radio"
-                  id="priority-low"
-                  name="priority"
-                  value="L"
-                  defaultChecked={task.priority === "L"}
-                />
-                <label htmlFor="priority-low">Low</label>
+              <h3>Priority: </h3>
+              <div className="priority-radio-w-error">
+                <div className="priority-radio">
+                  <div
+                    className={`radio-pair ${
+                      task.priority === "H" ? "selected-H" : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      id="priority-high"
+                      name="priority"
+                      value="H"
+                      defaultChecked={task.priority === "H"}
+                      onChange={() => handlePrioritySelect()}
+                    />
+                    <label htmlFor="priority-high">High</label>
+                  </div>
+                  <div
+                    className={`radio-pair ${
+                      task.priority === "M" ? "selected-M" : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      id="priority-medium"
+                      name="priority"
+                      value="M"
+                      defaultChecked={task.priority === "M"}
+                      onChange={() => handlePrioritySelect()}
+                    />
+                    <label htmlFor="priority-medium">Medium</label>
+                  </div>
+                  <div
+                    className={`radio-pair ${
+                      task.priority === "L" ? "selected-L" : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      id="priority-low"
+                      name="priority"
+                      value="L"
+                      defaultChecked={task.priority === "L"}
+                      onChange={() => handlePrioritySelect()}
+                    />
+                    <label htmlFor="priority-low">Low</label>
+                  </div>
+                </div>
+                <p id="priority-error"></p>
               </div>
-              <p id="priority-error"></p>
               <button type="submit">{task.taskID ? "Update" : "Create"}</button>
             </div>
           </form>

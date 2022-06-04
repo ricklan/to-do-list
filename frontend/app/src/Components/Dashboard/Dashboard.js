@@ -39,6 +39,7 @@ function displayTasks(tasks, pageNum, editTask, toggleEditTaskPopup) {
   if (tasks.length === 0) {
     taskWrapper.innerHTML = "No tasks";
   } else {
+    console.log(tasks);
     taskWrapper.innerHTML = "";
     tasks.forEach((task) => {
       let priorityTask;
