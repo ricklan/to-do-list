@@ -47,12 +47,14 @@ def _corsify_actual_response(response):
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
+
 def _build_cors_preflight_response():
     response = make_response()
     response.headers.add("Access-Control-Allow-Origin", "*")
     response.headers.add("Access-Control-Allow-Headers", "*")
     response.headers.add("Access-Control-Allow-Methods", "*")
     return response
+
 
 def _build_cors_preflight_response():
     response = make_response()
@@ -243,7 +245,7 @@ def addTask():
 
 @app.route("/api/editTask", methods=["PATCH", "OPTIONS"])
 def editTask():
-    
+
     if request.method == "OPTIONS":
         return _build_cors_preflight_response()
 
@@ -391,11 +393,18 @@ def getTask():
                         ELSE (COUNT(title) / 6) + 1
                     END AS totalNumPages
                     FROM Task 
-                    WHERE userID = (?)
+                    WHERE userID = (?) and priority like (?)
                 ) t2
                 
                 """,
-                (userID, filterTag, pageNumber * 6, (pageNumber - 1) * 6, userID),
+                (
+                    userID,
+                    filterTag,
+                    pageNumber * 6,
+                    (pageNumber - 1) * 6,
+                    userID,
+                    filterTag,
+                ),
             ).fetchall()
         return _corsify_actual_response(jsonify(rows)), 200
     except Exception as e:
@@ -407,7 +416,7 @@ def getTask():
 
 @app.route("/")
 def home():
-    return "Hello World"
+    return send_from_directory(app.static_folder, "index.html")
 
 
 def check_valid_name(name):
@@ -416,6 +425,7 @@ def check_valid_name(name):
 
 def check_valid_credentials(credential):
     return len(credential) >= 8 and credential.isalnum() and not credential.isnumeric()
+
 
 if __name__ == "__main__":
     app.secret_key = b"secretkey"

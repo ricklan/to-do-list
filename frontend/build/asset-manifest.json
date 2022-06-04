@@ -1,0 +1,21 @@
+{
+  "files": {
+    "main.css": "/static/css/main.7f70a8b0.css",
+    "main.js": "/static/js/main.5deef302.js",
+    "static/js/787.c1112931.chunk.js": "/static/js/787.c1112931.chunk.js",
+    "static/media/tasque-manager-png.png": "/static/media/tasque-manager-png.bf02b69b61ccbafa7942.png",
+    "static/media/boy.svg": "/static/media/boy.8bc8bac3216d13ccf0b4f0f2ab813a37.svg",
+    "index.html": "/index.html",
+    "static/media/icon-edit-hover.svg": "/static/media/icon-edit-hover.0b199ed874aecab56adf23d57566b51c.svg",
+    "static/media/icon-edit.svg": "/static/media/icon-edit.84a9ac82d1ed25f35175b579e80ef97b.svg",
+    "static/media/icon-checkmark-hover.svg": "/static/media/icon-checkmark-hover.845ecf33b2a86bd63d2f22979915a36b.svg",
+    "static/media/icon-checkmark.svg": "/static/media/icon-checkmark.3160db9ef7c3a9f28cc94e2006d15eef.svg",
+    "main.7f70a8b0.css.map": "/static/css/main.7f70a8b0.css.map",
+    "main.5deef302.js.map": "/static/js/main.5deef302.js.map",
+    "787.c1112931.chunk.js.map": "/static/js/787.c1112931.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7f70a8b0.css",
+    "static/js/main.5deef302.js"
+  ]
+}
