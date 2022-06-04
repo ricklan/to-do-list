@@ -56,13 +56,10 @@ def _build_cors_preflight_response():
 
 @app.route("/login", methods=["POST", "OPTIONS"])
 def login():
-<<<<<<< HEAD
 
     if request.method == "OPTIONS":
         return _build_cors_preflight_response()
     
-=======
->>>>>>> origin/backend
     # Checks if the user gave all necessary information
     if not ("username" in request.json and "password" in request.json):
         return _corsify_actual_response(jsonify("Did not enter all necessary information")), 400
@@ -82,11 +79,7 @@ def login():
             if sha256_crypt.verify(password, rows[0][0]):
 
                 return (
-<<<<<<< HEAD
                     _corsify_actual_response(jsonify("Successfully logged in")),
-=======
-                    "Successfully logged in",
->>>>>>> origin/backend
                     200,
                 )  # Maybe return user's first and/or last name
             else:
@@ -129,21 +122,13 @@ def signup():
 
     if not (check_valid_name(firstname)):
         return (
-<<<<<<< HEAD
             _corsify_actual_response(jsonify("The firstname is not of the right format. Firstnames must only contain alphabetical characters")),
-=======
-            "The firstname is not of the right format. Firstnames must only contain alphabetical characters",
->>>>>>> origin/backend
             400,
         )
 
     if not (check_valid_name(lastname)):
         return (
-<<<<<<< HEAD
             _corsify_actual_response(jsonify("The lastname is not of the right format. Lastnames must only contain alphabetical characters")),
-=======
-            "The lastname is not of the right format. Lastnames must only contain alphabetical characters",
->>>>>>> origin/backend
             400,
         )
 
@@ -171,12 +156,9 @@ def logout():
 
 @app.route("/api/addTask", methods=["POST", "OPTIONS"])
 def addTask():
-<<<<<<< HEAD
 
     if request.method == "OPTIONS":
         return _build_cors_preflight_response()
-=======
->>>>>>> origin/backend
 
     # Checks if the user gave all necessary information
     if not (
@@ -195,11 +177,7 @@ def addTask():
 
     # Check if the priority is one of H (High), M (Medium), L (Low)
     if priority != "H" and priority != "M" and priority != "L":
-<<<<<<< HEAD
         return _corsify_actual_response(jsonify("The priority is invalid")), 404
-=======
-        return "The priority is invalid", 404
->>>>>>> origin/backend
 
     try:
         with sqlite3.connect("database.db") as con:
@@ -220,23 +198,16 @@ def addTask():
                     (username, title, description, cur_day, priority),
                 )
                 con.commit()
-<<<<<<< HEAD
             return _corsify_actual_response(jsonify("Task successfully added")), 200
-=======
-            return "Task successfully added", 200
->>>>>>> origin/backend
     except:
         return _corsify_actual_response(jsonify("Error with adding task")), 500
 
 
 @app.route("/api/editTask", methods=["PATCH", "OPTIONS"])
 def editTask():
-<<<<<<< HEAD
     
     if request.method == "OPTIONS":
         return _build_cors_preflight_response()
-=======
->>>>>>> origin/backend
 
     # Checks if the user gave all necessary information
     if not (
@@ -287,11 +258,8 @@ def deleteTask():
     """
     Deletes a task from the database
     """
-<<<<<<< HEAD
     if request.method == "OPTIONS":
         return _build_cors_preflight_response()
-=======
->>>>>>> origin/backend
 
     # Checks if the user gave all necessary information
     taskID = request.args.get("taskID")
@@ -313,11 +281,7 @@ def deleteTask():
                     """,
                     (taskID,),
                 )
-<<<<<<< HEAD
             return _corsify_actual_response(jsonify("Task successfully deleted")), 200
-=======
-            return "Task successfully deleted", 200
->>>>>>> origin/backend
     except:
         return _corsify_actual_response(jsonify("Error with deleting task")), 500
 
@@ -329,16 +293,11 @@ def row_to_dict(cursor: sqlite3.Cursor, row: sqlite3.Row) -> dict:
     return data
 
 
-<<<<<<< HEAD
 @app.route("/api/getTask", methods=["GET", "OPTIONS"])
 def getTask():
 
     if request.method == "OPTIONS":
         return _build_cors_preflight_response()
-=======
-@app.route("/api/getTask", methods=["GET"])
-def getTask():
->>>>>>> origin/backend
 
     # Checks if the user gave all necessary information
     pageNumber = request.args.get("pageNumber")
@@ -350,7 +309,6 @@ def getTask():
     )
 
     if not pageNumber:
-<<<<<<< HEAD
         return _corsify_actual_response(jsonify("Did not give a page number")), 400
 
     if not userID:
@@ -358,15 +316,6 @@ def getTask():
 
     if not pageNumber.isdigit() or int(pageNumber) < 1:
         return _corsify_actual_response(jsonify("Invalid page number")), 400
-=======
-        return "Did not give a page number", 400
-
-    if not userID:
-        return "Did not give a userID", 400
-
-    if not pageNumber.isdigit() or int(pageNumber) < 1:
-        return "Invalid page number", 400
->>>>>>> origin/backend
 
     pageNumber = int(pageNumber)
     try:
@@ -374,15 +323,11 @@ def getTask():
             con.row_factory = row_to_dict
             rows = con.execute(
                 """
-<<<<<<< HEAD
-                SELECT title, description, priority, taskID 
-=======
                 SELECT title, description, priority, taskID, 
                 CASE
                     WHEN COUNT(title) % 6 = 0 THEN COUNT(title) / 6
                     ELSE (COUNT(title) / 6) + 1
                 END AS numPages
->>>>>>> origin/backend
                 FROM Task 
                 WHERE userID = (?) and priority like (?)
                 ORDER BY createdAt
@@ -391,15 +336,9 @@ def getTask():
                 """,
                 (userID, filterTag, pageNumber * 6, (pageNumber - 1) * 6),
             ).fetchall()
-<<<<<<< HEAD
         return _corsify_actual_response(jsonify(rows)), 200
     except:
         return _corsify_actual_response(jsonify("Error with getting task")), 500
-=======
-        return jsonify(rows), 200
-    except:
-        return "Error with getting task", 500
->>>>>>> origin/backend
 
 
 @app.route("/")
