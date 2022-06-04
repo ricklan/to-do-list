@@ -57,6 +57,27 @@ Yellow - #FBE489
 
 .task-buttons {
   margin-top: auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 5%;
+}
+
+.task-buttons button {
+  display: flex;
+  align-items: center;
+}
+
+.task-buttons button:hover {
+  color: #f0f0f0;
+}
+
+.task-buttons button img {
+  width: 20px;
+}
+
+.task-buttons button span {
+  margin: auto;
 }
 
 .task h3 {

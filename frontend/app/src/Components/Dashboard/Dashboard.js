@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import EditTask from "../EditTask/EditTask";
 import "./Dashboard.css";
+import checkmark from "../../images/icon-checkmark.svg";
+import edit from "../../images/icon-edit.svg";
+import checkmarkHover from "../../images/icon-checkmark-hover.svg";
+import editHover from "../../images/icon-edit-hover.svg";
 
 const axios = require("axios");
 let username;
@@ -58,7 +62,6 @@ function displayTasks(tasks, pageNum, editTask, toggleEditTaskPopup) {
   if (tasks.length === 0) {
     taskWrapper.innerHTML = "No tasks";
   } else {
-    console.log(tasks);
     taskWrapper.innerHTML = "";
     tasks.forEach((task) => {
       let priorityTask;
@@ -74,8 +77,14 @@ function displayTasks(tasks, pageNum, editTask, toggleEditTaskPopup) {
           <h3>${task.title}</h3>
           <p>${task.description}</p>
           <div class="task-buttons">
-            <button id=task-${task.taskID}-edit-button>edit</button>
-            <button id=task-${task.taskID}-delete-button>delete</button>
+            <button id=task-${task.taskID}-edit-button>
+              <img src="${edit}" alt="">
+              <span>edit</span>
+            </button>
+            <button id=task-${task.taskID}-delete-button>
+              <img src="${checkmark}" alt="">
+              <span>complete</span>
+            </button>
           </div>
         </div>
       </div>`;
@@ -83,23 +92,55 @@ function displayTasks(tasks, pageNum, editTask, toggleEditTaskPopup) {
     //add event listeners to each task buttons
     tasks.forEach((task) => {
       //edit
-      document
-        .getElementById(`task-${task.taskID}-edit-button`)
-        .addEventListener("click", () => {
-          handleEditTask(task, editTask, toggleEditTaskPopup);
-        });
+      const editButton = document.getElementById(
+        `task-${task.taskID}-edit-button`
+      );
+
+      editButton.addEventListener("click", () => {
+        handleEditTask(task, editTask, toggleEditTaskPopup);
+      });
+
+      editButton.addEventListener("mouseenter", (event) => {
+        if (event.target.nodeName === "BUTTON") {
+          const img = event.target.firstElementChild;
+          img.src = checkmarkHover;
+        }
+      });
+
+      editButton.addEventListener("mouseleave", (event) => {
+        if (event.target.nodeName === "BUTTON") {
+          const img = event.target.firstElementChild;
+          img.src = checkmark;
+        }
+      });
 
       //delete
-      document
-        .getElementById(`task-${task.taskID}-delete-button`)
-        .addEventListener("click", () => {
-          deleteTask(
-            { taskID: task.taskID },
-            pageNum,
-            editTask,
-            toggleEditTaskPopup
-          );
-        });
+      const deleteButton = document.getElementById(
+        `task-${task.taskID}-delete-button`
+      );
+
+      deleteButton.addEventListener("click", () => {
+        deleteTask(
+          { taskID: task.taskID },
+          pageNum,
+          editTask,
+          toggleEditTaskPopup
+        );
+      });
+
+      deleteButton.addEventListener("mouseenter", (event) => {
+        if (event.target.nodeName === "BUTTON") {
+          const img = event.target.firstElementChild;
+          img.src = editHover;
+        }
+      });
+
+      deleteButton.addEventListener("mouseleave", (event) => {
+        if (event.target.nodeName === "BUTTON") {
+          const img = event.target.firstElementChild;
+          img.src = edit;
+        }
+      });
     });
   }
 }
@@ -108,7 +149,6 @@ function deleteTask(id, pageNum, editTask, toggleEditTaskPopup) {
   axios
     .delete("http://127.0.0.1:5000/api/deleteTask", { params: id })
     .then((response) => {
-      console.log(response.data);
       getTasks(pageNum, editTask, toggleEditTaskPopup);
     })
     .catch((error) => {
