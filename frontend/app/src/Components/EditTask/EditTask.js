@@ -1,4 +1,6 @@
 import React from "react";
+import "./EditTask.css";
+import tasqueManager from "../../images/tasque-manager-png.png";
 
 const axios = require("axios");
 
@@ -54,49 +56,69 @@ function EditTask({ task, handleClose, username }) {
 
   return (
     <>
-      <h2>New Task</h2>
-      <button onClick={handleClose}>Close</button>
-      <form onSubmit={(e) => handleSubmit(e, task, handleClose)}>
-        <label>Add title:</label>
-        <input type="text" name="title" defaultValue={task.title} />
-        <br />
-        <label>Description:</label>
-        <textarea
-          name="description"
-          defaultValue={task.description}
-          maxLength="100"
-          onChange={(e) => updateCount(e.target.value.length)}
-        ></textarea>
-        <p id="desc-count">{task.description.length}/100</p>
-        <div>
-          <input
-            type="radio"
-            id="priority-high"
-            name="priority"
-            value="H"
-            defaultChecked={task.priority === "H"}
-          />
-          High
-          <input
-            type="radio"
-            id="priority-medium"
-            name="priority"
-            value="M"
-            defaultChecked={task.priority === "M"}
-          />
-          Medium
-          <input
-            type="radio"
-            id="priority-low"
-            name="priority"
-            value="L"
-            defaultChecked={task.priority === "L"}
-          />
-          Low
-          <p id="priority-error"></p>
+      <div className="popup-wrapper">
+        <div className="popup-window">
+          <div className="heading">
+            <h2>{task.taskID ? "Update Tasque" : "New Tasque"}</h2>
+            <button onClick={handleClose}>X</button>
+          </div>
+          <form onSubmit={(e) => handleSubmit(e, task, handleClose)}>
+            <div className="text-fields-and-tasque">
+              <div className="text-fields">
+                <div className="title">
+                  <label>Title:</label>
+                  <input type="text" name="title" defaultValue={task.title} />
+                </div>
+                <br />
+                <div className="description">
+                  <div>
+                    <label>Description:</label>
+                    <textarea
+                      name="description"
+                      defaultValue={task.description}
+                      maxLength="100"
+                      onChange={(e) => updateCount(e.target.value.length)}
+                    ></textarea>
+                  </div>
+                  <p id="desc-count">{task.description.length}/100</p>
+                </div>
+              </div>
+              <img src={tasqueManager} alt="" className="tasque" />
+            </div>
+            <div className="bottom-row">
+              <div className="priority-radio">
+                <h3>Priority: </h3>
+                <input
+                  type="radio"
+                  id="priority-high"
+                  name="priority"
+                  value="H"
+                  defaultChecked={task.priority === "H"}
+                />
+                <label htmlFor="priority-high">High</label>
+                <input
+                  type="radio"
+                  id="priority-medium"
+                  name="priority"
+                  value="M"
+                  defaultChecked={task.priority === "M"}
+                />
+                <label htmlFor="priority-medium">Medium</label>
+                <input
+                  type="radio"
+                  id="priority-low"
+                  name="priority"
+                  value="L"
+                  defaultChecked={task.priority === "L"}
+                />
+                <label htmlFor="priority-low">Low</label>
+              </div>
+              <p id="priority-error"></p>
+              <button type="submit">{task.taskID ? "Update" : "Create"}</button>
+            </div>
+          </form>
         </div>
-        <button type="submit">{task.taskID ? "Update" : "Create"}</button>
-      </form>
+      </div>
     </>
   );
 }
