@@ -82,17 +82,14 @@ Yellow - #FBE489
   border-radius: 15px;
 }
 
-.next-prev-page:hover {
+.next-prev-page:hover:enabled {
   background-color: #abd2fa;
   color: #091540;
 }
 
-.button-nav-fade {
-  /* add code */
-}
-
-.button-nav-show {
-  /*add code*/
+.next-prev-page:disabled,
+.next-prev-page[disabled] {
+  color: #030a22;
 }
 
 .new-task-button {

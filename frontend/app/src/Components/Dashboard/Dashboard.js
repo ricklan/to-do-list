@@ -21,13 +21,32 @@ function getTasks(pageNum, editTask, toggleEditTaskPopup) {
   axios
     .get("http://127.0.0.1:5000/api/getTask", { params: data })
     .then((response) => {
+      if (response.data.length > 0) {
+        const totalNumPages = response.data[0].totalNumPages;
+        updatePageButtons(totalNumPages);
+      }
       displayTasks(response.data, pageNum, editTask, toggleEditTaskPopup);
-      //if this is the last page, hide the right button
-      //if this is the first page, hide the left button
     })
     .catch((error) => {
       console.log(error);
     });
+}
+
+function updatePageButtons(totalNumPages) {
+  const navButtons = document.querySelectorAll(".next-prev-page");
+  //if this is the first page, hide the left button
+  if (curPage === 1) {
+    navButtons[0].setAttribute("disabled", true);
+  } else {
+    navButtons[0].removeAttribute("disabled");
+  }
+
+  //if this is the last page, hide the right button
+  if (curPage === totalNumPages) {
+    navButtons[1].setAttribute("disabled", true);
+  } else {
+    navButtons[1].removeAttribute("disabled");
+  }
 }
 
 /**
@@ -157,7 +176,7 @@ function Dashboard() {
       </header>
       <section className="content-wrapper">
         <button
-          className="button-nav-fade next-prev-page"
+          className="next-prev-page"
           onClick={() => {
             curPage--;
             getTasks(curPage, editTask, toggleEditTaskPopup);
@@ -167,7 +186,7 @@ function Dashboard() {
         </button>
         <div id="displayed-tasks"></div>
         <button
-          className="button-hide next-prev-page"
+          className="next-prev-page"
           onClick={() => {
             curPage++;
             getTasks(curPage, editTask, toggleEditTaskPopup);
