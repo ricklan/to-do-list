@@ -1,0 +1,78 @@
+/*
+Dark Blue - #091540
+Light Blue - #ABD2FA
+Red - #F2755C
+Orange - #FCBF49
+Yellow - #FBE489
+*/
+@import url("https://fonts.googleapis.com/css2?family=Kalam:wght@700&family=Rubik:wght@300;400;600&display=swap");
+
+/*****GLOBAL STYLES****/
+
+header {
+  display: flex;
+}
+
+body {
+  font-family: "Rubik", sans-serif;
+  background-color: #091540;
+}
+
+h1 {
+  font-family: "Kalam", cursive;
+  font-size: 4em;
+  margin-bottom: 8%;
+  margin-top: 10%;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input {
+  display: inline-block;
+  width: 100%;
+  height: 20px;
+  font-size: 15px;
+  color: #091540;
+  padding: 5px;
+  margin-bottom: 5px;
+  border: 0;
+  border-bottom: 3px solid #000000;
+  font-family: "Rubik", sans-serif;
+}
+
+input:hover:focus {
+  background-color: white;
+}
+
+input:focus {
+  outline: none;
+  border-bottom-color: #21398f;
+}
+
+.submit {
+  background-color: #091540;
+  color: white;
+  font-family: "Rubik", sans-serif;
+  border: none;
+  padding: 5px 15px;
+  margin-top: 25px;
+  margin-bottom: 15px;
+  line-height: 2em;
+  font-size: 1em;
+  border-radius: 5px;
+}
+
+.submit:hover {
+  background-color: #25387c;
+}
+
+.submit:focus {
+  background-color: #091540;
+}
+
+.hidden {
+  visibility: hidden;
+}
