@@ -47,7 +47,7 @@ function handleSubmit(e) {
     passwordTag.validity.valid
   ) {
     axios
-      .post("http://127.0.0.1:5000/signup", {
+      .post("/signup", {
         firstname: firstnameTag.value,
         lastname: lastnameTag.value,
         username: usernameTag.value,

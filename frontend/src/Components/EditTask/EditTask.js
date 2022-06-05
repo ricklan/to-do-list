@@ -24,7 +24,7 @@ function handleSubmit(e, task, handleClose) {
 
 function updateTask(task, handleClose) {
   axios
-    .patch("http://127.0.0.1:5000/api/editTask", task)
+    .patch("/api/editTask", task)
     .then(() => {
       handleClose();
     })
@@ -35,7 +35,7 @@ function updateTask(task, handleClose) {
 
 function addTask(task, handleClose) {
   axios
-    .post("http://127.0.0.1:5000/api/addTask", task)
+    .post("/api/addTask", task)
     .then(() => {
       handleClose();
     })

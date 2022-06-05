@@ -11,7 +11,7 @@ function handleLogin(e, navigate) {
   let pass = document.getElementById("login-password");
   let errorTag = document.getElementById("error-login");
   axios
-    .post("http://127.0.0.1:5000/login", {
+    .post("/login", {
       username: username.value,
       password: pass.value,
     })

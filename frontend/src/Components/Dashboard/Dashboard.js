@@ -23,7 +23,7 @@ function getTasks(pageNum, editTask, toggleEditTaskPopup) {
   }
 
   axios
-    .get("http://127.0.0.1:5000/api/getTask", { params: data })
+    .get("/api/getTask", { params: data })
     .then((response) => {
       if (response.data.length > 0) {
         const totalNumPages = response.data[0].totalNumPages;
@@ -147,7 +147,7 @@ function displayTasks(tasks, pageNum, editTask, toggleEditTaskPopup) {
 
 function deleteTask(id, pageNum, editTask, toggleEditTaskPopup) {
   axios
-    .delete("http://127.0.0.1:5000/api/deleteTask", { params: id })
+    .delete("/api/deleteTask", { params: id })
     .then((response) => {
       getTasks(pageNum, editTask, toggleEditTaskPopup);
     })
